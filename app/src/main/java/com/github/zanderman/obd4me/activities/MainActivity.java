@@ -50,4 +50,47 @@ public class MainActivity extends AppCompatActivity {
         deviceListView = (ListView) findViewById(R.id.deviceListView);
         scanButton = (Button) findViewById(R.id.scanButton);
     }
+
+    /**
+     * TODO: save listview content and state on rotation.
+     *      - http://stackoverflow.com/questions/3014089/maintain-save-restore-scroll-position-when-returning-to-a-listview
+     */
+
+
+    /**
+     * Method:
+     *      onSaveInstanceState( Bundle )
+     *
+     * Description:
+     *      ...
+     *
+     * @param outState  Bundle containing everything desired for preservation.
+     */
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        /**
+         * TODO: put list information to bundle.
+         */
+    }
+
+
+    /**
+     * Method:
+     *      onRestoreInstanceState( Bundle )
+     *
+     * Description:
+     *      ...
+     *
+     * @param savedInstanceState    Preserved data.
+     */
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        /**
+         * TODO: Put data back into listview.
+         */
+    }
 }
