@@ -6,14 +6,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.zanderman.obd.classes.OBDAdapter;
 import com.github.zanderman.obd4me.R;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
-import java.util.List;
 
 
 /**
@@ -52,30 +50,9 @@ public class DeviceListAdapter extends ArrayAdapter<OBDAdapter> implements View.
          * Initialize members.
          */
         this.context = context;
-        this.devices = null;
+        this.devices = new ArrayList<OBDAdapter>();
     }
 
-
-    /**
-     * Constructor:
-     *      DeviceListAdapter( Context, int, ArrayList<OBDAdapter> )
-     *
-     * Description:
-     *      Provides adapter object with resource ID and List of objects.
-     *
-     * @param context   ...
-     * @param resource  ...
-     * @param objects   ...
-     */
-    public DeviceListAdapter(Context context, int resource, ArrayList<OBDAdapter> objects) {
-        super(context, resource, objects);
-
-        /**
-         * Initialize members.
-         */
-        this.context = context;
-        this.devices = objects;
-    }
 
     /**
      * Method:
@@ -92,12 +69,17 @@ public class DeviceListAdapter extends ArrayAdapter<OBDAdapter> implements View.
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-        // Setup device layout inflater.
-        // Might be able to use: LayoutInflater.from(this.context);
-        LayoutInflater inflater = (LayoutInflater) this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        // Create row view.
+        View row = convertView;
 
-        // Inflate the custom layout.
-        View row = inflater.inflate(R.layout.obd_item, parent, false);
+        // Check if view is being recycled.
+        if (row == null) {
+            // Setup device layout inflater.
+            LayoutInflater inflater = LayoutInflater.from(this.context);
+
+            // Inflate the custom layout.
+            row = inflater.inflate(R.layout.obd_item, parent, false);
+        }
 
         /**
          * Access all elements from within the custom view.
@@ -138,10 +120,50 @@ public class DeviceListAdapter extends ArrayAdapter<OBDAdapter> implements View.
         int indexInAdapter = Integer.parseInt(((String[]) v.getTag())[0]);
 
         /**
-         * TODO:
-         *      1) pass device to main activity.
-         *      2) start new activity with device that was clicked.
-         *          a) interact with device in activity.
+         * Create new intent to that:
+         *      1. Starts the HUD activity.
+         *      2. Transfers selected OBDAdapter object.
          */
+//        Intent intent = new Intent(this.context, HUDActivity.class);
+//        intent.putExtra("OBDAdapter", this.devices.get(indexInAdapter));
+//
+//        // Start the activity.
+//        this.context.startActivity(intent);
+
+        Toast.makeText(getContext(), "Clicked: " + indexInAdapter, Toast.LENGTH_LONG);
+    }
+
+    @Override
+    public void add(OBDAdapter object) {
+        super.add(object);
+
+        // Add the adapter to the device list.
+        this.devices.add(object);
+    }
+
+    /**
+     * Method:
+     *      contains( OBDAdapter )
+     *
+     * Description:
+     *      Determines whether a given OBDAdapter object is present
+     *      within the device list.
+     *
+     * @param   adapter     OBDAdapter to be checked.
+     * @return boolean      Search status.
+     */
+    public boolean contains(OBDAdapter adapter) {
+
+        /**
+         * Iterate over all elements within the device list
+         * and determine if 'adapter' is present.
+         */
+        for (OBDAdapter curr : this.devices) {
+            if (curr.equals(adapter))
+                return true;
+        }
+
+        // Adapter is not within the device list.
+        return false;
     }
 }
