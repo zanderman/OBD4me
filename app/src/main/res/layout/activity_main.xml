@@ -6,6 +6,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".activities.MainActivity"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
     android:weightSum="1">
 
 
@@ -19,15 +21,30 @@
         android:background="@drawable/card_bg_shadow">
 
         <!-- User-specified OBD device name. -->
-        <EditText
+        <LinearLayout
+            android:orientation="horizontal"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="0.7"
-            android:layout_gravity="center"
-            android:inputType="textPersonName"
-            android:hint="OBD Device Name"
-            android:ems="10"
-            android:id="@+id/nameEditText" />
+            android:weightSum="1">
+
+            <EditText
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.85"
+                android:layout_gravity="center"
+                android:inputType="textPersonName"
+                android:hint="OBD Device Name"
+                android:ems="10"
+                android:id="@+id/nameEditText" />
+
+            <ProgressBar
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.15"
+                android:id="@+id/progressBar"
+                android:layout_gravity="center" />
+        </LinearLayout>
 
         <!-- Buffer. -->
         <FrameLayout
@@ -56,6 +73,7 @@
     </LinearLayout>
 
     <!-- List of scanned OBD device. -->
+
     <ListView
         android:layout_width="match_parent"
         android:layout_height="0dp"
