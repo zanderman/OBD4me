@@ -1,19 +1,28 @@
 package com.github.zanderman.obd4me.activities;
 
+import android.bluetooth.BluetoothDevice;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.github.zanderman.obd.classes.OBDAdapter;
+import com.github.zanderman.obd.classes.OBDManager;
+import com.github.zanderman.obd.interfaces.BluetoothCallbackInterface;
 import com.github.zanderman.obd4me.R;
 import com.github.zanderman.obd4me.adapters.DeviceListAdapter;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity
+                            implements BluetoothCallbackInterface {
 
     /**
      * TODO: Create main activity interface
@@ -31,18 +40,31 @@ public class MainActivity extends AppCompatActivity {
      */
 
     /**
+     * TODO: delete item from list if it's not found in next scan.
+     */
+
+    /**
+     * Flags
+     */
+    boolean scan_status;
+
+    /**
      * UI Elements.
      **/
     EditText nameEditText;
     ListView deviceListView;
     Button scanButton;
+    ProgressBar progressBar;
 
     /**
-     * Public members.
+     * ListView elements.
      */
-    ArrayList<OBDAdapter> devices;
     DeviceListAdapter deviceListAdapter;
 
+    /**
+     * OBD members.
+     */
+    OBDManager obdManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,20 +72,73 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         /**
+         * Init Flags.
+         */
+        scan_status = false;
+
+        /**
          * Initialize UI elements.
          **/
         nameEditText = (EditText) findViewById(R.id.nameEditText);
         deviceListView = (ListView) findViewById(R.id.deviceListView);
         scanButton = (Button) findViewById(R.id.scanButton);
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.GONE);
 
         /**
-         * Initialize members.
+         * Initialize ListView and container of elements.
          */
-        devices = new ArrayList<OBDAdapter>();
-        deviceListAdapter = new DeviceListAdapter(this, 0, devices);
+        deviceListAdapter = new DeviceListAdapter(this, R.layout.obd_item);
+        deviceListView.setAdapter(deviceListAdapter);
+
+        /**
+         * Initialize OBD members.
+         */
+        obdManager = new OBDManager();
+
+        /**
+         * Set Button click listeners.
+         */
+        scanButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                /**
+                 * Start scanning.
+                 */
+                if (!scan_status){
+                    obdManager.startScan();
+                    progressBar.setVisibility(View.VISIBLE);
+                }
+
+                /**
+                 * End scanning.
+                 */
+                else {
+                    obdManager.stopScan();
+                    progressBar.setVisibility(View.GONE);
+                }
+
+                // Flip-flop the scanning status flag.
+                scan_status = !scan_status;
+            }
+        });
     }
 
+    /**
+     * Method:
+     *      onResume( )
+     *
+     * Description:
+     *      ...
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
 
+        // Initialize the OBD manager.
+        obdManager.init(getApplicationContext(), this);
+    }
 
     /**
      * TODO: save listview content and state on rotation.
@@ -71,40 +146,50 @@ public class MainActivity extends AppCompatActivity {
      */
 
 
-    /**
-     * Method:
-     *      onSaveInstanceState( Bundle )
-     *
-     * Description:
-     *      ...
-     *
-     * @param outState  Bundle containing everything desired for preservation.
-     */
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
 
-        /**
-         * TODO: put list information to bundle.
-         */
+
+
+
+
+
+
+    @Override
+    public void bluetoothError(String message) {
+        Log.d("BT", "Error.");
     }
 
 
-    /**
-     * Method:
-     *      onRestoreInstanceState( Bundle )
-     *
-     * Description:
-     *      ...
-     *
-     * @param savedInstanceState    Preserved data.
-     */
     @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
+    public void discoveryStarted() {
+        Log.d("BT", "Discovery Started.");
+    }
+
+    @Override
+    public void discoveryFinished() {
+        Log.d("BT", "Discovery Finished.");
 
         /**
-         * TODO: Put data back into listview.
+         * Stop progress bar and reset scanning flag.
          */
+        progressBar.setVisibility(View.GONE);
+        scan_status = !scan_status;
+    }
+
+    @Override
+    public void discoveryFound(BluetoothDevice device) {
+
+        /**
+         * TODO: Check if device name matches.
+         */
+        // ...
+
+        /**
+         * Create and add device to ListView if it doesn't already exist.
+         */
+        OBDAdapter entry = new OBDAdapter(device);
+        if (!this.deviceListAdapter.contains(entry)) {
+            this.deviceListAdapter.add(entry);
+            this.deviceListAdapter.notifyDataSetChanged();
+        }
     }
 }
