@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 /**
@@ -109,5 +110,49 @@ public class OBDAdapter {
         } catch (Exception e) {
             return (false);
         }
+    }
+
+
+    /**
+     * Method:
+     *      equals( Object )
+     *
+     * Description:
+     *      Compares name and MAC address of current adapter with another.
+     *
+     * @param   o           Object to be compared with.
+     * @return  boolean     Equality status.
+     */
+    @Override
+    public boolean equals(Object o) {
+
+        super.equals(o);
+
+        /**
+         * Null object reference.
+         */
+        if (o == null)
+            return false;
+
+        /**
+         * Object is not an instance of OBDAdapter.
+         */
+        if (!OBDAdapter.class.isAssignableFrom(o.getClass()))
+            return false;
+
+        // Cast to OBDAdapter.
+        OBDAdapter other = (OBDAdapter) o;
+
+        /**
+         * Check object name and MAC address.
+         */
+        if (!this.name.equals(other.name) || !this.address.equals(other.address))
+            return false;
+
+        /**
+         * Object passes all tests for equality.
+         */
+        else
+            return true;
     }
 }
