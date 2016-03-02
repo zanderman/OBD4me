@@ -6,7 +6,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.github.zanderman.obd.classes.OBDAdapter;
 import com.github.zanderman.obd4me.R;
+import com.github.zanderman.obd4me.adapters.DeviceListAdapter;
+
+import java.util.ArrayList;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -27,15 +31,17 @@ public class MainActivity extends AppCompatActivity {
      */
 
     /**
-     * TODO: put obd-api-android as an external module/library
-     **/
-
-    /**
      * UI Elements.
      **/
     EditText nameEditText;
     ListView deviceListView;
     Button scanButton;
+
+    /**
+     * Public members.
+     */
+    ArrayList<OBDAdapter> devices;
+    DeviceListAdapter deviceListAdapter;
 
 
     @Override
@@ -49,7 +55,15 @@ public class MainActivity extends AppCompatActivity {
         nameEditText = (EditText) findViewById(R.id.nameEditText);
         deviceListView = (ListView) findViewById(R.id.deviceListView);
         scanButton = (Button) findViewById(R.id.scanButton);
+
+        /**
+         * Initialize members.
+         */
+        devices = new ArrayList<OBDAdapter>();
+        deviceListAdapter = new DeviceListAdapter(this, 0, devices);
     }
+
+
 
     /**
      * TODO: save listview content and state on rotation.
