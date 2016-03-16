@@ -2,6 +2,8 @@ package com.github.zanderman.obd4me.activities;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.github.zanderman.obd.classes.OBDAdapter;
@@ -19,13 +21,14 @@ import com.github.zanderman.obd4me.R;
  * Author:
  *      Alexander DeRieux
  */
-public class HUDActivity extends AppCompatActivity {
+public class HUDActivity extends AppCompatActivity implements View.OnClickListener {
 
     /**
      * Public members.
      */
     OBDAdapter device;
     TextView tempTextView;
+    Button disconnectButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,11 +39,38 @@ public class HUDActivity extends AppCompatActivity {
          * Initialize UI objects.
          */
         tempTextView = (TextView) findViewById(R.id.tempTextView);
+        disconnectButton = (Button) findViewById(R.id.disconnectButton);
 
         // Get passed OBD adapter object.
         getIntent().getSerializableExtra("OBDAdapter");
 
         // print device name.
         tempTextView.setText(device.name);
+
+        /**
+         * Set 'Disconnect' listener.
+         */
+        disconnectButton.setOnClickListener(this);
+    }
+
+    @Override
+    public void onClick(View v) {
+
+        /**
+         * Determine which button was pressed.
+         */
+        switch (v.getId()) {
+
+            // Disconnection was selected.
+            case R.id.disconnectButton:
+
+                // Disconnect the OBDAdapter object.
+                // this.device.disconnect();
+
+                // Complete this activity.
+                finish();
+
+                break;
+        }
     }
 }
