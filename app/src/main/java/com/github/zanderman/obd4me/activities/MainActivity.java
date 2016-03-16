@@ -127,14 +127,14 @@ public class MainActivity extends AppCompatActivity
 
     /**
      * Method:
-     *      onResume( )
+     *      onStart( )
      *
      * Description:
      *      ...
      */
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onStart() {
+        super.onStart();
 
         // Initialize the OBD manager.
         obdManager.init(getApplicationContext(), this);
@@ -186,6 +186,7 @@ public class MainActivity extends AppCompatActivity
         /**
          * Create and add device to ListView if it doesn't already exist.
          */
+        Log.d("MainActivity",device.getName());
         OBDAdapter entry = new OBDAdapter(device);
         if (!this.deviceListAdapter.contains(entry)) {
             this.deviceListAdapter.add(entry);
