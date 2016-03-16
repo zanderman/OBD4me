@@ -6,4 +6,6 @@
     android:orientation="vertical"
     tools:context="com.github.zanderman.obd4me.activities.HUDActivity">
 
+    <!-- TODO: Decide on interface layout. -->
+
 </LinearLayout>
