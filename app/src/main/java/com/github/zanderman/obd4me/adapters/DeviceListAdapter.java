@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import com.github.zanderman.obd.classes.OBDAdapter;
 import com.github.zanderman.obd4me.R;
+import com.github.zanderman.obd4me.activities.HUDActivity;
 
 import java.util.ArrayList;
 
