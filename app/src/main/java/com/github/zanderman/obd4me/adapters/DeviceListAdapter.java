@@ -1,6 +1,7 @@
 package com.github.zanderman.obd4me.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -124,11 +125,11 @@ public class DeviceListAdapter extends ArrayAdapter<OBDAdapter> implements View.
          *      1. Starts the HUD activity.
          *      2. Transfers selected OBDAdapter object.
          */
-//        Intent intent = new Intent(this.context, HUDActivity.class);
-//        intent.putExtra("OBDAdapter", this.devices.get(indexInAdapter));
-//
-//        // Start the activity.
-//        this.context.startActivity(intent);
+        Intent intent = new Intent(this.context, HUDActivity.class);
+        intent.putExtra("OBDAdapter", this.devices.get(indexInAdapter));
+
+        // Start the activity.
+        this.context.startActivity(intent);
 
         Toast.makeText(getContext(), "Clicked: " + indexInAdapter, Toast.LENGTH_LONG);
     }
