@@ -15,4 +15,12 @@
         android:hint="..."
         android:id="@+id/tempTextView"
         android:layout_gravity="center_horizontal" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@color/red"
+        android:text="Disconnect"
+        android:id="@+id/disconnectButton" />
 </LinearLayout>
