@@ -17,7 +17,8 @@ import java.util.UUID;
  * Author:
  *      Alexander DeRieux
  */
-public class OBDAdapter {
+@SuppressWarnings("serial")
+public class OBDAdapter implements Serializable {
 
     /**
      * Private Members
