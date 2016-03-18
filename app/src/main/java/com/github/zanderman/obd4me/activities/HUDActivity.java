@@ -1,5 +1,6 @@
 package com.github.zanderman.obd4me.activities;
 
+import android.bluetooth.BluetoothDevice;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -41,8 +42,8 @@ public class HUDActivity extends AppCompatActivity implements View.OnClickListen
         tempTextView = (TextView) findViewById(R.id.tempTextView);
         disconnectButton = (Button) findViewById(R.id.disconnectButton);
 
-        // Get passed OBD adapter object.
-        getIntent().getSerializableExtra("OBDAdapter");
+        // Create OBDAdapter from the passed BluetoothDevice.
+        this.device = new OBDAdapter((BluetoothDevice) getIntent().getParcelableExtra("device"));
 
         // print device name.
         tempTextView.setText(device.name);
