@@ -184,8 +184,8 @@ public class MainActivity extends AppCompatActivity
         /**
          * Create and add device to ListView if it doesn't already exist.
          */
-        Log.d("BT",device.getName());
         OBDAdapter entry = new OBDAdapter(device);
+        Log.d("BT","Name: "+entry);
         if (!this.deviceListAdapter.contains(entry)) {
             this.deviceListAdapter.add(entry);
             this.deviceListAdapter.notifyDataSetChanged();
