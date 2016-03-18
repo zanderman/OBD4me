@@ -104,7 +104,7 @@ public class OBDManager {
     public boolean registerBroadcastReceiver(Context context) {
         try {
             // Register the intent filter to the above broadcast receiver.
-            context.registerReceiver(this.receiver, btFilter);
+            context.registerReceiver(this.receiver, this.btFilter);
             return (true);
         } catch (Exception e) {
             return (false);
