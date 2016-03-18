@@ -10,6 +10,7 @@ import android.content.IntentFilter;
 import android.util.Log;
 
 import com.github.zanderman.obd.interfaces.BluetoothCallbackInterface;
+import com.github.zanderman.obd.receivers.OBDReceiver;
 
 /**
  * Class:
@@ -31,9 +32,9 @@ public class OBDManager {
     /**
      * Private Members
      */
-    private BroadcastReceiver receiver;
     private BluetoothAdapter adapter;
     private IntentFilter btFilter;
+    private OBDReceiver receiver;
 
 
     /**
@@ -75,7 +76,7 @@ public class OBDManager {
             }
 
             // Create the receiver object.
-            this.createBroadcastReceiver(bluetoothCallbackInterface);
+            this.receiver = new OBDReceiver(bluetoothCallbackInterface);
 
             // Create intent filter and add BT actions.
             this.btFilter = new IntentFilter();
@@ -89,55 +90,6 @@ public class OBDManager {
     }
 
 
-    /**
-     * Method:
-     *      createBroadcastReceiver( Context, final BluetoothCallbackInterface )
-     *
-     * Description:
-     *      ...
-     *
-     * @param bluetoothCallbackInterface    Custom callback interface for Bluetooth actions.
-     * @return boolean                      Creation success status.
-     */
-    private boolean createBroadcastReceiver(final BluetoothCallbackInterface bluetoothCallbackInterface) {
-
-        try {
-
-            /**
-             * Setup broadcast receiver for bluetooth actions.
-             */
-            this.receiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-
-                    // Check for different actions.
-                    //
-                    // Get current action.
-                    String action = intent.getAction();
-
-                    if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
-                        // Call specific callback method.
-                        bluetoothCallbackInterface.discoveryStarted();
-                    }
-                    else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-                        // Call specific callback method.
-                        bluetoothCallbackInterface.discoveryFinished();
-                    }
-
-                    else if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-
-                        // Call specific callback method.
-                        bluetoothCallbackInterface.discoveryFound((BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE));
-                    }
-                }
-            };
-
-            return (true);
-
-        } catch (Exception e) {
-            return (false);
-        }
-    }
 
     /**
      * Method:
