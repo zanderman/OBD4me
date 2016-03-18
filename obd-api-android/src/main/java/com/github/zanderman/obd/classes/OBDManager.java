@@ -126,9 +126,6 @@ public class OBDManager {
 
                     else if (BluetoothDevice.ACTION_FOUND.equals(action)) {
 
-                        // Cancel the discovery process.
-                        adapter.cancelDiscovery();
-
                         // Call specific callback method.
                         bluetoothCallbackInterface.discoveryFound((BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE));
                     }
