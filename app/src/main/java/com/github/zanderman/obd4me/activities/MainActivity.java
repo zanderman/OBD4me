@@ -190,12 +190,6 @@ public class MainActivity extends AppCompatActivity
     public void discoveryFound(BluetoothDevice device) {
 
         /**
-         * TODO: Check if device name matches.
-         */
-        // ...
-        Log.d("BT","key: '" + this.keyScan + "'");
-
-        /**
          * Create and add device to ListView if it doesn't already exist.
          */
         OBDAdapter entry = new OBDAdapter(device);
