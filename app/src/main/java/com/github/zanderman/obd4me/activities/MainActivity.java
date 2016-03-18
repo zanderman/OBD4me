@@ -22,7 +22,7 @@ import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity
-                            implements BluetoothCallbackInterface {
+                            implements BluetoothCallbackInterface, View.OnClickListener {
 
     /**
      * TODO: Create main activity interface
@@ -66,6 +66,10 @@ public class MainActivity extends AppCompatActivity
      */
     OBDManager obdManager;
 
+    /**
+     *
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -95,49 +99,35 @@ public class MainActivity extends AppCompatActivity
          * Initialize OBD members.
          */
         obdManager = new OBDManager();
+        obdManager.init(this, this);
 
         /**
          * Set Button click listeners.
          */
-        scanButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        scanButton.setOnClickListener(this);
+    }
 
-                /**
-                 * Start scanning.
-                 */
-                if (!scan_status){
-                    obdManager.startScan();
-                    progressBar.setVisibility(View.VISIBLE);
-                }
 
-                /**
-                 * End scanning.
-                 */
-                else {
-                    obdManager.stopScan();
-                    progressBar.setVisibility(View.GONE);
-                }
+    /**
+     *
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
 
-                // Flip-flop the scanning status flag.
-                scan_status = !scan_status;
-            }
-        });
+        // Re-register the Bluetooth actions broadcast receiver.
+        this.obdManager.registerBroadcastReceiver(this);
     }
 
     /**
-     * Method:
-     *      onStart( )
      *
-     * Description:
-     *      ...
      */
     @Override
-    protected void onStart() {
-        super.onStart();
+    protected void onPause() {
+        super.onPause();
 
-        // Initialize the OBD manager.
-        obdManager.init(getApplicationContext(), this);
+        // De-register the Bluetooth actions broadcast receiver.
+        this.obdManager.unregisterBroadcastReceiver(this);
     }
 
     /**
@@ -146,24 +136,27 @@ public class MainActivity extends AppCompatActivity
      */
 
 
-
-
-
-
-
-
-
+    /**
+     *
+     * @param message
+     */
     @Override
     public void bluetoothError(String message) {
         Log.d("BT", "Error.");
     }
 
 
+    /**
+     *
+     */
     @Override
     public void discoveryStarted() {
         Log.d("BT", "Discovery Started.");
     }
 
+    /**
+     *
+     */
     @Override
     public void discoveryFinished() {
         Log.d("BT", "Discovery Finished.");
@@ -175,6 +168,11 @@ public class MainActivity extends AppCompatActivity
         scan_status = !scan_status;
     }
 
+
+    /**
+     *
+     * @param device
+     */
     @Override
     public void discoveryFound(BluetoothDevice device) {
 
@@ -186,11 +184,54 @@ public class MainActivity extends AppCompatActivity
         /**
          * Create and add device to ListView if it doesn't already exist.
          */
-        Log.d("MainActivity",device.getName());
+        Log.d("BT",device.getName());
         OBDAdapter entry = new OBDAdapter(device);
         if (!this.deviceListAdapter.contains(entry)) {
             this.deviceListAdapter.add(entry);
             this.deviceListAdapter.notifyDataSetChanged();
+        }
+    }
+
+
+    /**
+     * Method:
+     *      onClick( View )
+     *
+     * Description:
+     *      Overridden method to handle click actions.
+     *
+     * @param v     View correlating to what was clicked.
+     */
+    @Override
+    public void onClick(View v) {
+
+        /**
+         * Determine what was clicked.
+         */
+        switch (v.getId()) {
+
+            /**
+             * Scanning Button.
+             */
+            case R.id.scanButton:
+                /**
+                 * Start scanning.
+                 */
+                if (!scan_status){
+                    this.obdManager.startScan();
+                    this.progressBar.setVisibility(View.VISIBLE);
+                }
+
+                /**
+                 * End scanning.
+                 */
+                else {
+                    this.obdManager.stopScan();
+                    this.progressBar.setVisibility(View.GONE);
+                }
+
+                // Flip-flop the scanning status flag.
+                this.scan_status = !this.scan_status;
         }
     }
 }
