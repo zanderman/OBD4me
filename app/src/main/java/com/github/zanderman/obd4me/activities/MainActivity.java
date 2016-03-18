@@ -192,11 +192,10 @@ public class MainActivity extends AppCompatActivity
         /**
          * Create and add device to ListView if it doesn't already exist.
          */
-        OBDAdapter entry = new OBDAdapter(device);
-        Log.d("BT", "Name: " + entry);
-        if (!this.deviceListAdapter.contains(entry)) {
-            if ( (this.keyScan == null) || (this.keyScan.equals("")) || (entry.name.equals(this.keyScan)) ) {
-                this.deviceListAdapter.add(entry);
+        Log.d("BT", "Name: " + device);
+        if (!this.deviceListAdapter.contains(device)) {
+            if ( (this.keyScan == null) || (this.keyScan.equals("")) || (device.getName().equals(this.keyScan)) ) {
+                this.deviceListAdapter.add(device);
                 this.deviceListAdapter.notifyDataSetChanged();
             }
         }
