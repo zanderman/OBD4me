@@ -1,5 +1,6 @@
 package com.github.zanderman.obd4me.adapters;
 
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.view.LayoutInflater;
@@ -26,14 +27,14 @@ import java.util.ArrayList;
  * Author:
  *      Alexander DeRieux
  */
-public class DeviceListAdapter extends ArrayAdapter<OBDAdapter> implements View.OnClickListener {
+public class DeviceListAdapter extends ArrayAdapter<BluetoothDevice> implements View.OnClickListener {
 
 
     /**
      * Constant Private Members.
      */
     private final Context context;
-    private final ArrayList<OBDAdapter> devices;
+    private final ArrayList<BluetoothDevice> devices;
 
     /**
      * Constructor:
@@ -52,7 +53,7 @@ public class DeviceListAdapter extends ArrayAdapter<OBDAdapter> implements View.
          * Initialize members.
          */
         this.context = context;
-        this.devices = new ArrayList<OBDAdapter>();
+        this.devices = new ArrayList<BluetoothDevice>();
     }
 
 
@@ -92,8 +93,8 @@ public class DeviceListAdapter extends ArrayAdapter<OBDAdapter> implements View.
         /**
          * Populate information on the view elements.
          */
-        nameTextView.setText(this.devices.get(position).name);
-        addressTextView.setText(this.devices.get(position).address);
+        nameTextView.setText(this.devices.get(position).getName());
+        addressTextView.setText(this.devices.get(position).getAddress());
 
         // Set this custom view's tag.
         row.setTag(new String[]{((Integer) position).toString()});
@@ -127,7 +128,7 @@ public class DeviceListAdapter extends ArrayAdapter<OBDAdapter> implements View.
          *      2. Transfers selected OBDAdapter object.
          */
         Intent intent = new Intent(this.context, HUDActivity.class);
-        intent.putExtra("OBDAdapter", this.devices.get(indexInAdapter));
+        intent.putExtra("device", this.devices.get(indexInAdapter));
 
         // Start the activity.
         this.context.startActivity(intent);
@@ -135,8 +136,18 @@ public class DeviceListAdapter extends ArrayAdapter<OBDAdapter> implements View.
         Toast.makeText(getContext(), "Clicked: " + indexInAdapter, Toast.LENGTH_LONG);
     }
 
+
+    /**
+     * Method:
+     *      add( BluetoothDevice )
+     *
+     * Description:
+     *      ...
+     *
+     * @param object
+     */
     @Override
-    public void add(OBDAdapter object) {
+    public void add(BluetoothDevice object) {
         super.add(object);
 
         // Add the adapter to the device list.
@@ -151,16 +162,16 @@ public class DeviceListAdapter extends ArrayAdapter<OBDAdapter> implements View.
      *      Determines whether a given OBDAdapter object is present
      *      within the device list.
      *
-     * @param   adapter     OBDAdapter to be checked.
+     * @param   adapter     BluetoothAdapter to be checked.
      * @return boolean      Search status.
      */
-    public boolean contains(OBDAdapter adapter) {
+    public boolean contains(BluetoothDevice adapter) {
 
         /**
          * Iterate over all elements within the device list
          * and determine if 'adapter' is present.
          */
-        for (OBDAdapter curr : this.devices) {
+        for (BluetoothDevice curr : this.devices) {
             if (curr.equals(adapter))
                 return true;
         }
