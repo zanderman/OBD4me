@@ -178,7 +178,12 @@ public class MainActivity extends AppCompatActivity
          * Stop progress bar and reset scanning flag.
          */
         progressBar.setVisibility(View.GONE);
-        scan_status = !scan_status;
+
+        /**
+         * Reset stats flag only if needed.
+         */
+        if (scan_status)
+            scan_status = !scan_status;
     }
 
 
@@ -192,9 +197,10 @@ public class MainActivity extends AppCompatActivity
         /**
          * Create and add device to ListView if it doesn't already exist.
          */
-        Log.d("BT", "Name: " + device);
+        Log.d("BT", "Found: " + device.getName());
+        Log.d("BT", "Compare: " + device.getName().toLowerCase() + " vs. " + this.keyScan.toLowerCase());
         if (!this.deviceListAdapter.contains(device)) {
-            if ( (this.keyScan == null) || (this.keyScan.equals("")) || (device.getName().equals(this.keyScan)) ) {
+            if ( (this.keyScan == null) || (this.keyScan.equals("")) || (device.getName().toLowerCase().contains(this.keyScan.toLowerCase())) ) {
                 this.deviceListAdapter.add(device);
                 this.deviceListAdapter.notifyDataSetChanged();
             }
@@ -227,6 +233,9 @@ public class MainActivity extends AppCompatActivity
                  * Start scanning.
                  */
                 if (!scan_status){
+                    // Clear contents of the adapter to assist in filtering results.
+                    this.deviceListAdapter.clear();
+
                     // Save the desired string.
                     this.keyScan = this.nameEditText.getText().toString();
 
