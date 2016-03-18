@@ -44,6 +44,11 @@ public class MainActivity extends AppCompatActivity
      */
 
     /**
+     * Members.
+     */
+    String keyScan;
+
+    /**
      * Flags
      */
     boolean scan_status;
@@ -74,6 +79,11 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        /**
+         * Init activity members.
+         */
+        keyScan = null;
 
         /**
          * Init Flags.
@@ -161,6 +171,9 @@ public class MainActivity extends AppCompatActivity
     public void discoveryFinished() {
         Log.d("BT", "Discovery Finished.");
 
+        // Reset the string key.
+        this.keyScan = null;
+
         /**
          * Stop progress bar and reset scanning flag.
          */
@@ -180,15 +193,18 @@ public class MainActivity extends AppCompatActivity
          * TODO: Check if device name matches.
          */
         // ...
+        Log.d("BT","key: '" + this.keyScan + "'");
 
         /**
          * Create and add device to ListView if it doesn't already exist.
          */
         OBDAdapter entry = new OBDAdapter(device);
-        Log.d("BT","Name: "+entry);
+        Log.d("BT", "Name: " + entry);
         if (!this.deviceListAdapter.contains(entry)) {
-            this.deviceListAdapter.add(entry);
-            this.deviceListAdapter.notifyDataSetChanged();
+            if ( (this.keyScan == null) || (this.keyScan.equals("")) || (entry.name.equals(this.keyScan)) ) {
+                this.deviceListAdapter.add(entry);
+                this.deviceListAdapter.notifyDataSetChanged();
+            }
         }
     }
 
@@ -218,7 +234,13 @@ public class MainActivity extends AppCompatActivity
                  * Start scanning.
                  */
                 if (!scan_status){
+                    // Save the desired string.
+                    this.keyScan = this.nameEditText.getText().toString();
+
+                    // Begin scanning.
                     this.obdManager.startScan();
+
+                    // Make the spinning progress bar visible.
                     this.progressBar.setVisibility(View.VISIBLE);
                 }
 
@@ -226,7 +248,13 @@ public class MainActivity extends AppCompatActivity
                  * End scanning.
                  */
                 else {
+                    // Reset the string key.
+                    this.keyScan = null;
+
+                    // End scanning.
                     this.obdManager.stopScan();
+
+                    // Hide the spinning progress bar.
                     this.progressBar.setVisibility(View.GONE);
                 }
 
