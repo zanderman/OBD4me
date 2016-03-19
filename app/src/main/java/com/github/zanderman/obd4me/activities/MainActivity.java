@@ -172,7 +172,7 @@ public class MainActivity extends AppCompatActivity
         Log.d("BT", "Discovery Finished.");
 
         // Reset the string key.
-        this.keyScan = null;
+        this.keyScan = "";
 
         /**
          * Stop progress bar and reset scanning flag.
@@ -198,9 +198,9 @@ public class MainActivity extends AppCompatActivity
          * Create and add device to ListView if it doesn't already exist.
          */
         Log.d("BT", "Found: " + device.getName());
-        Log.d("BT", "Compare: " + device.getName().toLowerCase() + " vs. " + this.keyScan.toLowerCase());
+//        Log.d("BT", "Compare: " + device.getName().toLowerCase() + " vs. '" + this.keyScan.toLowerCase()+"'");
         if (!this.deviceListAdapter.contains(device)) {
-            if ( (this.keyScan == null) || (this.keyScan.equals("")) || (device.getName().toLowerCase().contains(this.keyScan.toLowerCase())) ) {
+            if ( (this.keyScan.equals("")) || (device.getName().toLowerCase().contains(this.keyScan.toLowerCase())) ) {
                 this.deviceListAdapter.add(device);
                 this.deviceListAdapter.notifyDataSetChanged();
             }
@@ -232,7 +232,7 @@ public class MainActivity extends AppCompatActivity
                 /**
                  * Start scanning.
                  */
-                if (!scan_status){
+                if (!scan_status) {
                     // Clear contents of the adapter to assist in filtering results.
                     this.deviceListAdapter.clear();
 
@@ -251,7 +251,7 @@ public class MainActivity extends AppCompatActivity
                  */
                 else {
                     // Reset the string key.
-                    this.keyScan = null;
+                    this.keyScan = "";
 
                     // End scanning.
                     this.obdManager.stopScan();
