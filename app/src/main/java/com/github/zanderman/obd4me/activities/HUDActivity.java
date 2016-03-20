@@ -59,7 +59,28 @@ public class HUDActivity extends AppCompatActivity implements View.OnClickListen
          * Set 'Disconnect' listener.
          */
         disconnectButton.setOnClickListener(this);
-        connectButton.setOnClickListener(this);
+//        connectButton.setOnClickListener(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if ( this.device.connect() )
+            Toast.makeText(this.getApplicationContext(),"Connected!", Toast.LENGTH_SHORT).show();
+        else
+            finish();
+    }
+
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        // Disconnect the OBDAdapter object.
+        this.device.disconnect();
+
+        Toast.makeText(this.getApplicationContext(),"Disconnected...", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -74,7 +95,7 @@ public class HUDActivity extends AppCompatActivity implements View.OnClickListen
             case R.id.disconnectButton:
 
                 // Disconnect the OBDAdapter object.
-                this.device.disconnect();
+//                this.device.disconnect();
 
                 // Complete this activity.
                 finish();
