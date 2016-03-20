@@ -136,6 +136,24 @@ public class MainActivity extends AppCompatActivity
     protected void onPause() {
         super.onPause();
 
+        /*
+         * Cancel scanning on activity pause.
+         */
+        if (scan_status)
+        {
+            // Reset the string key.
+            this.keyScan = "";
+
+            // End scanning.
+            this.obdManager.stopScan();
+
+            // Hide the spinning progress bar.
+            this.progressBar.setVisibility(View.GONE);
+
+            // Reset the scanning status flag.
+            scan_status = !scan_status;
+        }
+
         // De-register the Bluetooth actions broadcast receiver.
         this.obdManager.unregisterBroadcastReceiver(this);
     }
@@ -198,12 +216,9 @@ public class MainActivity extends AppCompatActivity
          * Create and add device to ListView if it doesn't already exist.
          */
         Log.d("BT", "Found: " + device.getName());
-//        Log.d("BT", "Compare: " + device.getName().toLowerCase() + " vs. '" + this.keyScan.toLowerCase()+"'");
-        if (!this.deviceListAdapter.contains(device)) {
-            if ( (this.keyScan.equals("")) || (device.getName().toLowerCase().contains(this.keyScan.toLowerCase())) ) {
-                this.deviceListAdapter.add(device);
-                this.deviceListAdapter.notifyDataSetChanged();
-            }
+        if ( (!this.deviceListAdapter.contains(device)) && ( device.getName() != null ) && ( (this.keyScan.equals("")) || (device.getName().toLowerCase().contains(this.keyScan.toLowerCase())) )) {
+            this.deviceListAdapter.add(device);
+            this.deviceListAdapter.notifyDataSetChanged();
         }
     }
 
@@ -235,6 +250,7 @@ public class MainActivity extends AppCompatActivity
                 if (!scan_status) {
                     // Clear contents of the adapter to assist in filtering results.
                     this.deviceListAdapter.clear();
+                    this.deviceListAdapter.notifyDataSetChanged();
 
                     // Save the desired string.
                     this.keyScan = this.nameEditText.getText().toString();
