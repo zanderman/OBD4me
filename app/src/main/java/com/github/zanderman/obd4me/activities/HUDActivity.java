@@ -59,10 +59,13 @@ public class HUDActivity extends AppCompatActivity implements View.OnClickListen
          * Set 'Disconnect' listener.
          */
         disconnectButton.setOnClickListener(this);
+        connectButton.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View v) {
+
+        Log.d("HUD",v.toString());
 
         /**
          * Determine which button was pressed.
@@ -82,10 +85,8 @@ public class HUDActivity extends AppCompatActivity implements View.OnClickListen
             case R.id.connectButton:
                 if (this.device.connect())
                     Log.d("HUD","Connected");
-//                    Toast.makeText(this,"Connected",Toast.LENGTH_SHORT);
                 else
                     Log.d("HUD","Failed...");
-//                    Toast.makeText(this,"Failed...",Toast.LENGTH_SHORT);
         }
     }
 }
