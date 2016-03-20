@@ -179,4 +179,13 @@ public class DeviceListAdapter extends ArrayAdapter<BluetoothDevice> implements 
         // Adapter is not within the device list.
         return false;
     }
+
+
+    @Override
+    public void clear() {
+        super.clear();
+
+        // Remove all saved devices.
+        this.devices.clear();
+    }
 }
