@@ -3,6 +3,7 @@ package com.github.zanderman.obd.classes;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.util.Log;
 
 import java.io.Serializable;
 import java.util.UUID;
@@ -103,12 +104,43 @@ public class OBDAdapter implements Serializable {
                 this.socket = this.device.createRfcommSocketToServiceRecord(this.uuid);
 
                 // Connect to the socket.
-                socket.connect();
+                this.socket.connect();
 
                 // Connection worked out correctly.
                 return (true);
             }
         } catch (Exception e) {
+            Log.d("adapter", e.toString());
+
+            // Disconnect from the device.
+            this.disconnect();
+
+            // Connection failure.
+            return (false);
+        }
+    }
+
+
+    public boolean disconnect() {
+
+        try {
+            // Bluetooth NOT supported.
+            if (this.adapter == null) {
+                return (false);
+            }
+            // Bluetooth is supported.
+            else {
+
+                // Close connect to the Bluetooth socket.
+                this.socket.close();
+
+                // Disconnection worked out correctly.
+                return (true);
+            }
+        } catch (Exception e) {
+            Log.d("adapter", e.toString());
+
+            // Disconnect failure.
             return (false);
         }
     }
