@@ -65,8 +65,6 @@ public class HUDActivity extends AppCompatActivity implements View.OnClickListen
     @Override
     public void onClick(View v) {
 
-        Log.d("HUD",v.toString());
-
         /**
          * Determine which button was pressed.
          */
@@ -76,12 +74,14 @@ public class HUDActivity extends AppCompatActivity implements View.OnClickListen
             case R.id.disconnectButton:
 
                 // Disconnect the OBDAdapter object.
-                // this.device.disconnect();
+                this.device.disconnect();
 
                 // Complete this activity.
                 finish();
 
                 break;
+
+            // Connection was selected.
             case R.id.connectButton:
                 if (this.device.connect())
                     Log.d("HUD","Connected");
