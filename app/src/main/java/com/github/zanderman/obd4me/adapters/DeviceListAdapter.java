@@ -132,8 +132,6 @@ public class DeviceListAdapter extends ArrayAdapter<BluetoothDevice> implements 
 
         // Start the activity.
         this.context.startActivity(intent);
-
-        Toast.makeText(getContext(), "Clicked: " + indexInAdapter, Toast.LENGTH_LONG);
     }
 
 
