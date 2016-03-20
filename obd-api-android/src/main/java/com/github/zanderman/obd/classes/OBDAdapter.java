@@ -22,12 +22,21 @@ import java.util.UUID;
 public class OBDAdapter implements Serializable {
 
     /**
+     * Enumerated type for denoting connection status types.
+     */
+    private enum Status {
+        DISCONNECTED,
+        CONNECTED
+    }
+
+    /**
      * Private Members
      */
     private BluetoothAdapter adapter;
     private BluetoothDevice device;
     private BluetoothSocket socket;
     private UUID uuid;
+    private volatile Status status;
 
     /**
      * Public Members
@@ -70,6 +79,7 @@ public class OBDAdapter implements Serializable {
         this.adapter = BluetoothAdapter.getDefaultAdapter();
         this.device = device;
         this.socket = null;
+        this.status = Status.DISCONNECTED;
 
         // Generate a random UUID for the device to connect with.
         this.uuid = UUID.randomUUID();
@@ -97,11 +107,6 @@ public class OBDAdapter implements Serializable {
             }
             // Bluetooth is supported.
             else {
-                // Gain access to the actual device.
-                this.device = this.adapter.getRemoteDevice(this.address);
-
-                // Create a communications socket with the device.
-                this.socket =(BluetoothSocket) this.device.getClass().getMethod("createRfcommSocket", new Class[] {int.class}).invoke(this.device,1);
 
                 /*
                  * Bluetooth connection is very intensive,
@@ -112,13 +117,29 @@ public class OBDAdapter implements Serializable {
                     @Override
                     public void run() {
                         try {
+                            // Gain access to the actual device.
+                            device = adapter.getRemoteDevice(address);
+
+                            // Create a communications socket with the device.
+                            socket =(BluetoothSocket) device.getClass().getMethod("createRfcommSocket", new Class[] {int.class}).invoke(device,1);
+
+                            // Attempt to connect to the device.
                             socket.connect();
+
+                            // Change status to connected.
+                            status = Status.CONNECTED;
                             Log.d("connectionThread", "Connected");
+
                         } catch (Exception c) {
                             Log.d("connectionThread",c.toString());
                             try {
+                                // Disconnect from the device on error.
                                 socket.close();
+
+                                // Change status to disconnected.
+                                status = Status.DISCONNECTED;
                                 Log.d("connectionThread", "Disconnected");
+
                             } catch (Exception d) {
                                 Log.d("connectionThread",d.toString());
                             }
@@ -126,9 +147,15 @@ public class OBDAdapter implements Serializable {
                     }
                 });
                 connectionThread.start();
+                connectionThread.join(); /* Wait for connection thread to complete. */
 
                 // Connection worked out correctly.
-                return (true);
+                if ( status == Status.CONNECTED )
+                    return (true);
+
+                // Connection failed.
+                else
+                    return (false);
             }
         } catch (Exception e) {
             Log.d("adapter", e.toString());
@@ -154,6 +181,7 @@ public class OBDAdapter implements Serializable {
 
                 // Close connect to the Bluetooth socket.
                 this.socket.close();
+                this.status = Status.DISCONNECTED;
                 Log.d("disconnectionThread", "Disconnected");
 
                 // Disconnection worked out correctly.
