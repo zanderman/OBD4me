@@ -101,10 +101,31 @@ public class OBDAdapter implements Serializable {
                 this.device = this.adapter.getRemoteDevice(this.address);
 
                 // Create a communications socket with the device.
-                this.socket = this.device.createRfcommSocketToServiceRecord(this.uuid);
+                this.socket =(BluetoothSocket) this.device.getClass().getMethod("createRfcommSocket", new Class[] {int.class}).invoke(this.device,1);
 
-                // Connect to the socket.
-                this.socket.connect();
+                /*
+                 * Bluetooth connection is very intensive,
+                 * placing it within a separate thread unloads
+                 * the main app of the processing needed.
+                 */
+                Thread connectionThread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            socket.connect();
+                            Log.d("connectionThread", "Connected");
+                        } catch (Exception c) {
+                            Log.d("connectionThread",c.toString());
+                            try {
+                                socket.close();
+                                Log.d("connectionThread", "Disconnected");
+                            } catch (Exception d) {
+                                Log.d("connectionThread",d.toString());
+                            }
+                        }
+                    }
+                });
+                connectionThread.start();
 
                 // Connection worked out correctly.
                 return (true);
@@ -133,6 +154,7 @@ public class OBDAdapter implements Serializable {
 
                 // Close connect to the Bluetooth socket.
                 this.socket.close();
+                Log.d("disconnectionThread", "Disconnected");
 
                 // Disconnection worked out correctly.
                 return (true);
