@@ -85,9 +85,9 @@ public class OBDReceiver extends BroadcastReceiver {
             case BluetoothDevice.ACTION_FOUND:
                 bluetoothCallbackInterface.discoveryFound((BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE));
             case OBDReceiver.COMMUNICATION_RECEIVE:
-                // add action
+                bluetoothCallbackInterface.receive( (String) intent.getStringExtra("incomming") );
             case OBDReceiver.COMMUNICATION_TRANSMIT:
-                // add action
+                bluetoothCallbackInterface.transmit( (String) intent.getStringExtra("outgoing") );
         }
     }
 }
