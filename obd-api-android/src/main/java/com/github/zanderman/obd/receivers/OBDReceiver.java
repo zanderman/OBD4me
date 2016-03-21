@@ -73,23 +73,21 @@ public class OBDReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
-        // Get current action.
-        String action = intent.getAction();
-
         /**
          * Check for different actions.
          */
-        if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
-            // Call specific callback method.
-            bluetoothCallbackInterface.discoveryStarted();
-        }
-        else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-            // Call specific callback method.
-            bluetoothCallbackInterface.discoveryFinished();
-        }
-        else if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-            // Call specific callback method.
-            bluetoothCallbackInterface.discoveryFound((BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE));
+        switch ( intent.getAction() )
+        {
+            case BluetoothAdapter.ACTION_DISCOVERY_STARTED:
+                bluetoothCallbackInterface.discoveryStarted();
+            case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
+                bluetoothCallbackInterface.discoveryFinished();
+            case BluetoothDevice.ACTION_FOUND:
+                bluetoothCallbackInterface.discoveryFound((BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE));
+            case OBDReceiver.COMMUNICATION_RECEIVE:
+                // add action
+            case OBDReceiver.COMMUNICATION_TRANSMIT:
+                // add action
         }
     }
 }
