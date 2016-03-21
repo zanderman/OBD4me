@@ -170,6 +170,14 @@ public class MainActivity extends AppCompatActivity
             scan_status = !scan_status;
         }
 
+        /**
+         * Unbind with the background service.
+         */
+        if (bound) {
+            this.unbindService(this);
+            bound = false;
+        }
+
         // De-register the Bluetooth actions broadcast receiver.
 //        this.obdManager.unregisterBroadcastReceiver(this);
     }
