@@ -29,11 +29,4 @@ public interface BluetoothCallbackInterface {
     public void discoveryStarted(); /* Callback method for when BT discovery has begun. */
     public void discoveryFinished(); /* Callback method for when BT discovery has ended. */
     public void discoveryFound( BluetoothDevice device ); /* Callback for when a desired device has been found during BT discovery. */
-
-
-    /**
-     * Communication Callbacks.
-     */
-    public void receive( String packet ); /* Incoming data reception. */
-    public void transmit( String packet ); /* Outgoing data transmission. */
 }
