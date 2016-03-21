@@ -141,6 +141,12 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
 
+        /**
+         * Bind with background service.
+         */
+        if (serviceStarted())
+            this.bindWithService();
+
         // Re-register the Bluetooth actions broadcast receiver.
 //        this.obdManager.registerBroadcastReceiver(this);
     }
