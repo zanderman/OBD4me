@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.github.zanderman.obd.interfaces.BluetoothCallbackInterface;
+import com.github.zanderman.obd.interfaces.CommunicationCallbackInterface;
 
 /**
  * Class:
@@ -21,6 +22,7 @@ public class OBDReceiver extends BroadcastReceiver {
      * Private members.
      */
     final BluetoothCallbackInterface bluetoothCallbackInterface;
+    final CommunicationCallbackInterface communicationCallbackInterface;
 
     /**
      * Custom Broadcasts.
@@ -40,6 +42,7 @@ public class OBDReceiver extends BroadcastReceiver {
         super();
 
         this.bluetoothCallbackInterface = null;
+        this.communicationCallbackInterface = null;
     }
 
     /**
@@ -58,6 +61,28 @@ public class OBDReceiver extends BroadcastReceiver {
          * Initialize members.
          */
         this.bluetoothCallbackInterface = bluetoothCallbackInterface;
+        this.communicationCallbackInterface = null;
+    }
+
+
+
+    /**
+     * Constructor:
+     *      ...
+     *
+     * Description:
+     *      ...
+     *
+     * @param communicationCallbackInterface    Primary callback interface used.
+     */
+    public OBDReceiver(final CommunicationCallbackInterface communicationCallbackInterface) {
+        super();
+
+        /**
+         * Initialize members.
+         */
+        this.communicationCallbackInterface = communicationCallbackInterface;
+        this.bluetoothCallbackInterface= null;
     }
 
     /**
@@ -79,15 +104,15 @@ public class OBDReceiver extends BroadcastReceiver {
         switch ( intent.getAction() )
         {
             case BluetoothAdapter.ACTION_DISCOVERY_STARTED:
-                bluetoothCallbackInterface.discoveryStarted();
+                this.bluetoothCallbackInterface.discoveryStarted();
             case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
-                bluetoothCallbackInterface.discoveryFinished();
+                this.bluetoothCallbackInterface.discoveryFinished();
             case BluetoothDevice.ACTION_FOUND:
-                bluetoothCallbackInterface.discoveryFound((BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE));
+                this.bluetoothCallbackInterface.discoveryFound((BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE));
             case OBDReceiver.COMMUNICATION_RECEIVE:
-                bluetoothCallbackInterface.receive( intent.getStringExtra("incoming") );
+                this.communicationCallbackInterface.receive( intent.getStringExtra("incoming") );
             case OBDReceiver.COMMUNICATION_TRANSMIT:
-                bluetoothCallbackInterface.transmit( intent.getStringExtra("outgoing") );
+                this.communicationCallbackInterface.transmit( intent.getStringExtra("outgoing") );
         }
     }
 }
