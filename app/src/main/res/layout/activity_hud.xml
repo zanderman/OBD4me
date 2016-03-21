@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.github.zanderman.obd4me.activities.HUDActivity">
+    tools:context="com.github.zanderman.obd4me.activities.HUDActivity"
+    android:weightSum="1">
 
     <!-- TODO: Decide on interface layout. -->
 
@@ -38,4 +39,42 @@
         android:background="@color/red"
         android:text="Disconnect"
         android:id="@+id/disconnectButton" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="16dp"></FrameLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="top|center">
+
+            <Button
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="New Button"
+                android:id="@+id/button" />
+
+            <Button
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="New Button"
+                android:id="@+id/button2" />
+
+            <Button
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="New Button"
+                android:id="@+id/button3" />
+        </LinearLayout>
+    </LinearLayout>
 </LinearLayout>

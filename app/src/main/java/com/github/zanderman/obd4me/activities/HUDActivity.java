@@ -24,7 +24,8 @@ import com.github.zanderman.obd4me.R;
  * Author:
  *      Alexander DeRieux
  */
-public class HUDActivity extends AppCompatActivity implements View.OnClickListener {
+public class HUDActivity extends AppCompatActivity
+        implements View.OnClickListener {
 
     /**
      * Public members.
