@@ -1,6 +1,14 @@
 package com.github.zanderman.obd4me.activities;
 
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.content.SharedPreferences;
+import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,13 +24,15 @@ import com.github.zanderman.obd.classes.OBDManager;
 import com.github.zanderman.obd.interfaces.BluetoothCallbackInterface;
 import com.github.zanderman.obd4me.R;
 import com.github.zanderman.obd4me.adapters.DeviceListAdapter;
+import com.github.zanderman.obd4me.interfaces.ListableInterface;
+import com.github.zanderman.obd4me.services.DeviceInteractionService;
 
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity
-                            implements BluetoothCallbackInterface, View.OnClickListener {
+                            implements /*BluetoothCallbackInterface,*/ View.OnClickListener, ServiceConnection, ListableInterface {
 
     /**
      * TODO: Create main activity interface
@@ -47,11 +57,18 @@ public class MainActivity extends AppCompatActivity
      * Members.
      */
     String keyScan;
+    DeviceInteractionService service;
 
     /**
      * Flags
      */
     boolean scan_status;
+    boolean bound; /* Flag denoting current binding status with background service. */
+
+    /**
+     * Shared Preferences.
+     */
+    SharedPreferences sharedPreferences;
 
     /**
      * UI Elements.
@@ -69,7 +86,7 @@ public class MainActivity extends AppCompatActivity
     /**
      * OBD members.
      */
-    OBDManager obdManager;
+//    OBDManager obdManager;
 
     /**
      *
@@ -106,10 +123,9 @@ public class MainActivity extends AppCompatActivity
         deviceListView.setAdapter(deviceListAdapter);
 
         /**
-         * Initialize OBD members.
+         * Start the background service.
          */
-        obdManager = new OBDManager();
-        obdManager.init(this, this);
+        this.createService();
 
         /**
          * Set Button click listeners.
@@ -126,7 +142,7 @@ public class MainActivity extends AppCompatActivity
         super.onResume();
 
         // Re-register the Bluetooth actions broadcast receiver.
-        this.obdManager.registerBroadcastReceiver(this);
+//        this.obdManager.registerBroadcastReceiver(this);
     }
 
     /**
@@ -145,7 +161,7 @@ public class MainActivity extends AppCompatActivity
             this.keyScan = "";
 
             // End scanning.
-            this.obdManager.stopScan();
+//            this.obdManager.stopScan();
 
             // Hide the spinning progress bar.
             this.progressBar.setVisibility(View.GONE);
@@ -155,7 +171,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         // De-register the Bluetooth actions broadcast receiver.
-        this.obdManager.unregisterBroadcastReceiver(this);
+//        this.obdManager.unregisterBroadcastReceiver(this);
     }
 
     /**
@@ -164,62 +180,97 @@ public class MainActivity extends AppCompatActivity
      */
 
 
-    /**
-     *
-     * @param message
-     */
-    @Override
-    public void bluetoothError(String message) {
-        Log.d("BT", "Error.");
-    }
+//    /**
+//     *
+//     * @param message
+//     */
+//    @Override
+//    public void bluetoothError(String message) {
+//        Log.d("BT", "Error.");
+//    }
+
+
+//    /**
+//     *
+//     */
+//    @Override
+//    public void discoveryStarted() {
+//        Log.d("BT", "Discovery Started.");
+//    }
+
+//    /**
+//     *
+//     */
+//    @Override
+//    public void discoveryFinished() {
+//        Log.d("BT", "Discovery Finished.");
+//
+//        // Reset the string key.
+//        this.keyScan = "";
+//
+//        /**
+//         * Stop progress bar and reset scanning flag.
+//         */
+//        progressBar.setVisibility(View.GONE);
+//
+//        /**
+//         * Reset stats flag only if needed.
+//         */
+//        if (scan_status)
+//            scan_status = !scan_status;
+//    }
+
+
+//    /**
+//     *
+//     * @param device
+//     */
+//    @Override
+//    public void discoveryFound(BluetoothDevice device) {
+//
+//        /**
+//         * Create and add device to ListView if it doesn't already exist.
+//         */
+//        Log.d("BT", "Found: " + device.getName());
+//        if ( (!this.deviceListAdapter.contains(device)) && ( device.getName() != null ) && ( (this.keyScan.equals("")) || (device.getName().toLowerCase().contains(this.keyScan.toLowerCase())) )) {
+//            this.deviceListAdapter.add(device);
+//            this.deviceListAdapter.notifyDataSetChanged();
+//        }
+//    }
 
 
     /**
+     * Method:
+     *      listAdd( Object )
      *
+     * Description:
+     *      ...
+     *
+     * @param o     Object to be added to the listview.
      */
     @Override
-    public void discoveryStarted() {
-        Log.d("BT", "Discovery Started.");
-    }
-
-    /**
-     *
-     */
-    @Override
-    public void discoveryFinished() {
-        Log.d("BT", "Discovery Finished.");
-
-        // Reset the string key.
-        this.keyScan = "";
+    public void listAdd(Object o) {
 
         /**
-         * Stop progress bar and reset scanning flag.
+         * Ensure that the object being added is a Bluetooth device.
          */
-        progressBar.setVisibility(View.GONE);
+        if ( o instanceof BluetoothDevice ) {
 
-        /**
-         * Reset stats flag only if needed.
-         */
-        if (scan_status)
-            scan_status = !scan_status;
-    }
-
-
-    /**
-     *
-     * @param device
-     */
-    @Override
-    public void discoveryFound(BluetoothDevice device) {
-
-        /**
-         * Create and add device to ListView if it doesn't already exist.
-         */
-        Log.d("BT", "Found: " + device.getName());
-        if ( (!this.deviceListAdapter.contains(device)) && ( device.getName() != null ) && ( (this.keyScan.equals("")) || (device.getName().toLowerCase().contains(this.keyScan.toLowerCase())) )) {
-            this.deviceListAdapter.add(device);
-            this.deviceListAdapter.notifyDataSetChanged();
+            /**
+             * Create and add device to ListView if it doesn't already exist.
+             */
+            BluetoothDevice device = (BluetoothDevice) o;
+            Log.d("BT", "Found: " + device.getName());
+            if ( (!this.deviceListAdapter.contains(device)) && ( device.getName() != null ) && ( (this.keyScan.equals("")) || (device.getName().toLowerCase().contains(this.keyScan.toLowerCase())) )) {
+                this.deviceListAdapter.add(device);
+                this.deviceListAdapter.notifyDataSetChanged();
+            }
         }
+    }
+
+    @Override
+    public void listRemove(Object o) {
+
     }
 
 
@@ -256,7 +307,7 @@ public class MainActivity extends AppCompatActivity
                     this.keyScan = this.nameEditText.getText().toString();
 
                     // Begin scanning.
-                    this.obdManager.startScan();
+//                    this.obdManager.startScan();
 
                     // Make the spinning progress bar visible.
                     this.progressBar.setVisibility(View.VISIBLE);
@@ -270,7 +321,7 @@ public class MainActivity extends AppCompatActivity
                     this.keyScan = "";
 
                     // End scanning.
-                    this.obdManager.stopScan();
+//                    this.obdManager.stopScan();
 
                     // Hide the spinning progress bar.
                     this.progressBar.setVisibility(View.GONE);
@@ -279,5 +330,54 @@ public class MainActivity extends AppCompatActivity
                 // Flip-flop the scanning status flag.
                 this.scan_status = !this.scan_status;
         }
+    }
+
+    /**
+     * Method:
+     *      createService( )
+     *
+     * Description:
+     *      ...
+     */
+    public void createService() {
+        if (!serviceStarted()) this.startService(new Intent(MainActivity.this, DeviceInteractionService.class));
+    }
+
+    /**
+     * Method:
+     *      bindWithService( )
+     *
+     * Description:
+     *      ...
+     */
+    public void bindWithService() {
+        Intent intent = new Intent(MainActivity.this, DeviceInteractionService.class); /* Create new intent. */
+        this.bindService(intent, this, Context.BIND_AUTO_CREATE); /* Bind with the service. */
+        this.bound = true; /* Change bound status flag value. */
+    }
+
+
+    /**
+     * Method:
+     *      serviceStarted( )
+     *
+     * Description:
+     *      ...
+     *
+     * @return
+     */
+    public boolean serviceStarted() {
+        this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        return ( this.sharedPreferences.contains("service_started") && this.sharedPreferences.getBoolean("service_started", false) );
+    }
+
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder service) {
+
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+
     }
 }
