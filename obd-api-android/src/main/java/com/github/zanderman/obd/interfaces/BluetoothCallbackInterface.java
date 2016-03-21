@@ -3,7 +3,11 @@ package com.github.zanderman.obd.interfaces;
 import android.bluetooth.BluetoothDevice;
 
 /**
- * Created by zanderieux on 2/8/16.
+ * Interface:
+ *      BluetoothCallbackInterface
+ *
+ * Description:
+ *      ...
  */
 public interface BluetoothCallbackInterface {
 
@@ -13,23 +17,23 @@ public interface BluetoothCallbackInterface {
      */
 
 
-    //  --------------------
-    // | Standard Callbacks |
-    //  --------------------
-    public void bluetoothError(String message);
+    /**
+     * Standard Bluetooth Callbacks.
+     */
+    public void bluetoothError( String message ); /* A bluetooth error has occurred. */
 
 
+    /**
+     * Bluetooth Discovery Callbacks.
+     */
+    public void discoveryStarted(); /* Callback method for when BT discovery has begun. */
+    public void discoveryFinished(); /* Callback method for when BT discovery has ended. */
+    public void discoveryFound( BluetoothDevice device ); /* Callback for when a desired device has been found during BT discovery. */
 
-    //  ---------------------
-    // | Discovery Callbacks |
-    //  ---------------------
 
-    // Callback method for when BT discovery has begun.
-    public void discoveryStarted();
-
-    // Callback method for when BT discovery has ended.
-    public void discoveryFinished();
-
-    // Callback for when a desired device has been found during BT discovery.
-    public void discoveryFound(BluetoothDevice device);
+    /**
+     * Communication Callbacks.
+     */
+    public void receive( String packet ); /* Incoming data reception. */
+    public void transmit( String packet ); /* Outgoing data transmission. */
 }
