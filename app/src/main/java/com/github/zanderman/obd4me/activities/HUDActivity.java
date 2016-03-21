@@ -94,9 +94,6 @@ public class HUDActivity extends AppCompatActivity implements View.OnClickListen
             // Disconnection was selected.
             case R.id.disconnectButton:
 
-                // Disconnect the OBDAdapter object.
-//                this.device.disconnect();
-
                 // Complete this activity.
                 finish();
 
