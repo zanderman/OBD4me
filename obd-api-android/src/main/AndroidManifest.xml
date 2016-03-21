@@ -11,6 +11,15 @@
         android:label="@string/app_name"
         android:supportsRtl="true">
 
+        <receiver
+            android:name=".receivers.OBDReceiver"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="com.github.zanderman.obd.custom.intent.communication.transmit"></action>
+                <action android:name="com.github.zanderman.obd.custom.intent.communication.receive"></action>
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

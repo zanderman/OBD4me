@@ -22,6 +22,25 @@ public class OBDReceiver extends BroadcastReceiver {
      */
     final BluetoothCallbackInterface bluetoothCallbackInterface;
 
+    /**
+     * Custom Broadcasts.
+     */
+    public static final String COMMUNICATION_RECEIVE = "com.github.zanderman.obd.custom.intent.communication.receive";
+    public static final String COMMUNICATION_TRANSMIT = "com.github.zanderman.obd.custom.intent.communication.transmit";
+
+
+    /**
+     * Default Constructor:
+     *      ...
+     *
+     * Description:
+     *      ...
+     */
+    public OBDReceiver() {
+        super();
+
+        this.bluetoothCallbackInterface = null;
+    }
 
     /**
      * Constructor:
@@ -40,7 +59,6 @@ public class OBDReceiver extends BroadcastReceiver {
          */
         this.bluetoothCallbackInterface = bluetoothCallbackInterface;
     }
-
 
     /**
      * Method:
