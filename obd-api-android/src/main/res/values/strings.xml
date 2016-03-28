@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">OBD-II Android API</string>
+    <string name="OutgoingData">Outgoing Data</string>
+    <string name="IncomingData">Incoming Data</string>
 </resources>
