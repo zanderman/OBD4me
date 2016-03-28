@@ -9,6 +9,7 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.github.zanderman.obd.classes.OBDAdapter;
 import com.github.zanderman.obd.classes.OBDManager;
@@ -21,6 +22,16 @@ import com.github.zanderman.obd4me.activities.MainActivity;
  */
 public class DeviceInteractionService extends Service
         implements BluetoothCallbackInterface, CommunicationCallbackInterface {
+
+    /**
+     * Broadcast Actions.
+     */
+    public static final String BLUETOOTH_ACTION_DISCOVERY_STARTED = "Discovery Started";
+    public static final String BLUETOOTH_ACTION_DISCOVERY_FINISHED = "Discovery Finished";
+    public static final String BLUETOOTH_ACTION_DISCOVERY_FOUND = "Discovery Found";
+    public static final String BLUETOOTH_ITEM_DEVICE = "Bluetooth Device";
+    public static final String COMMUNICATION_ACTION_RECEIVE = "Communication Receive";
+    public static final String COMMUNICATION_ACTION_TRANSMIT = "Communication Transmit";
 
     /**
      * Public Service Members
@@ -51,7 +62,7 @@ public class DeviceInteractionService extends Service
          */
         this.bluetoothActivity = null;
         this.communicationActivity = null;
-        this.binder = new Binder();
+        this.binder = new LocalBinder();
         this.device = null;
     }
 
@@ -64,6 +75,25 @@ public class DeviceInteractionService extends Service
          */
         manager = new OBDManager();
         manager.init(this, this);
+
+        Log.d("Service", "onCreate.");
+    }
+
+
+    /**
+     * Class:
+     *      LocalBinder
+     *
+     * Description:
+     *      Helper class to give a binder reference to a specific DeviceInteractionService instance.
+     *
+     * Author:
+     *      Alexander DeRieux
+     */
+    public class LocalBinder extends Binder {
+        public DeviceInteractionService getServiceInstance() {
+            return DeviceInteractionService.this;
+        }
     }
 
 
@@ -78,7 +108,6 @@ public class DeviceInteractionService extends Service
      * @param intent
      * @return
      */
-    @Nullable
     @Override
     public IBinder onBind(Intent intent) {
 
@@ -126,6 +155,8 @@ public class DeviceInteractionService extends Service
          */
         this.manager.registerBroadcastReceiver(this);
 
+        Log.d("Service", "Started.");
+
         // Denote this service as a lingering one.
         return START_STICKY;
     }
@@ -139,6 +170,8 @@ public class DeviceInteractionService extends Service
          * Unregister the OBD manager's broadcast receiver.
          */
         this.manager.unregisterBroadcastReceiver(this);
+
+        Log.d("Service","Destroyed");
     }
 
 
@@ -155,6 +188,41 @@ public class DeviceInteractionService extends Service
         this.device = device;
     }
 
+    public boolean connectDevice( ) {
+
+        boolean flag = this.device.connect();
+
+        SharedPreferences server_status = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        SharedPreferences.Editor editor = server_status.edit();
+        editor.putBoolean("device_status", flag);
+        editor.putString("device_name", this.device.name);
+        editor.putString("device_address", this.device.address);
+        editor.commit();
+
+        return ( flag );
+    }
+
+    public boolean disconnectDevice( ) {
+
+        boolean flag = this.device.disconnect();
+
+        SharedPreferences server_status = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        SharedPreferences.Editor editor = server_status.edit();
+        editor.putBoolean("device_status", flag);
+        editor.putString("device_name", null);
+        editor.putString("device_address", null);
+        editor.commit();
+
+        return ( flag );
+    }
+
+    public void startScan() {
+        this.manager.startScan();
+    }
+
+    public void stopScan() {
+        this.manager.stopScan();
+    }
 
     /**
      * Method:
@@ -210,7 +278,9 @@ public class DeviceInteractionService extends Service
          * Create an intent to notify of Bluetooth discovery started.
          */
         Intent intent = new Intent();
-        intent.setAction("discoveryStarted");
+        intent.setAction(this.BLUETOOTH_ACTION_DISCOVERY_STARTED);
+
+        Log.d("Service", "Discovery Started.");
 
         // Send the intent through a broadcast.
         sendBroadcast(intent);
@@ -222,7 +292,9 @@ public class DeviceInteractionService extends Service
          * Create an intent to notify of Bluetooth discovery completion.
          */
         Intent intent = new Intent();
-        intent.setAction("discoveryFinished");
+        intent.setAction(this.BLUETOOTH_ACTION_DISCOVERY_FINISHED);
+
+        Log.d("Service","Discovery Finished.");
 
         // Send the intent through a broadcast.
         sendBroadcast(intent);
@@ -235,8 +307,10 @@ public class DeviceInteractionService extends Service
          * Create an intent with the Bluetooth device inside of it.
          */
         Intent intent = new Intent();
-        intent.putExtra("device", device);
-        intent.setAction("newDevice");
+        intent.putExtra(this.BLUETOOTH_ITEM_DEVICE, device);
+        intent.setAction(this.BLUETOOTH_ACTION_DISCOVERY_FOUND);
+
+        Log.d("Service", "Discovery Found.");
 
         // Send the intent through a broadcast to the Bluetooth callbacks activity.
         sendBroadcast(intent);
@@ -250,5 +324,14 @@ public class DeviceInteractionService extends Service
     @Override
     public void transmit(String packet) {
 
+    }
+
+    public void post( String packet ) {
+        Log.d("Service", "device: " + this.device.name);
+        this.device.send( packet );
+    }
+
+    public String get() {
+        return this.device.receive();
     }
 }
