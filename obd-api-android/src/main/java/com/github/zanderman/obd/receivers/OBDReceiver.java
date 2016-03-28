@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
+import com.github.zanderman.obd.R;
 import com.github.zanderman.obd.interfaces.BluetoothCallbackInterface;
 import com.github.zanderman.obd.interfaces.CommunicationCallbackInterface;
 
@@ -104,15 +105,20 @@ public class OBDReceiver extends BroadcastReceiver {
         switch ( intent.getAction() )
         {
             case BluetoothAdapter.ACTION_DISCOVERY_STARTED:
-                this.bluetoothCallbackInterface.discoveryStarted();
+                if ( this.bluetoothCallbackInterface != null )
+                    this.bluetoothCallbackInterface.discoveryStarted();
             case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
-                this.bluetoothCallbackInterface.discoveryFinished();
+                if ( this.bluetoothCallbackInterface != null )
+                    this.bluetoothCallbackInterface.discoveryFinished();
             case BluetoothDevice.ACTION_FOUND:
-                this.bluetoothCallbackInterface.discoveryFound((BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE));
+                if ( this.bluetoothCallbackInterface != null )
+                    this.bluetoothCallbackInterface.discoveryFound((BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE));
             case OBDReceiver.COMMUNICATION_RECEIVE:
-                this.communicationCallbackInterface.receive( intent.getStringExtra("incoming") );
+                if ( this.communicationCallbackInterface != null )
+                    this.communicationCallbackInterface.receive( intent.getStringExtra(context.getString(R.string.IncomingData)) );
             case OBDReceiver.COMMUNICATION_TRANSMIT:
-                this.communicationCallbackInterface.transmit( intent.getStringExtra("outgoing") );
+                if ( this.communicationCallbackInterface != null )
+                    this.communicationCallbackInterface.transmit( context.getString(R.string.OutgoingData) );
         }
     }
 }
