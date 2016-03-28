@@ -11,12 +11,6 @@ import android.bluetooth.BluetoothDevice;
  */
 public interface BluetoothCallbackInterface {
 
-    /*
-        Declare all BT callbacks here.
-        NOTE: can be made generic by adding <T> at top.
-     */
-
-
     /**
      * Standard Bluetooth Callbacks.
      */
