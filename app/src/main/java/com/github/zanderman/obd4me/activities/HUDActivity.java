@@ -1,6 +1,15 @@
 package com.github.zanderman.obd4me.activities;
 
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
+import android.content.SharedPreferences;
+import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,8 +19,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.zanderman.obd.classes.OBDAdapter;
+import com.github.zanderman.obd.interfaces.CommunicationCallbackInterface;
 import com.github.zanderman.obd4me.R;
-
+import com.github.zanderman.obd4me.adapters.DeviceListAdapter;
+import com.github.zanderman.obd4me.services.DeviceInteractionService;
 
 
 /**
@@ -25,16 +36,39 @@ import com.github.zanderman.obd4me.R;
  *      Alexander DeRieux
  */
 public class HUDActivity extends AppCompatActivity
-        implements View.OnClickListener {
+        implements View.OnClickListener, ServiceConnection {
 
     /**
      * Public members.
      */
-    OBDAdapter device;
     TextView tempNameTextView;
     TextView tempAddressTextView;
     Button disconnectButton;
-    Button connectButton;
+    Button transmitButton;
+    DeviceInteractionService service;
+
+    /**
+     * Shared Preferences.
+     */
+    SharedPreferences sharedPreferences;
+
+    /**
+     * Flags
+     */
+    boolean bound; /* Denotes current binding status with background service. */
+
+    /**
+     * Intent Filters.
+     */
+    IntentFilter intentFilter;
+
+
+    BroadcastReceiver actionReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,30 +81,36 @@ public class HUDActivity extends AppCompatActivity
         tempNameTextView = (TextView) findViewById(R.id.tempNameTextView);
         tempAddressTextView = (TextView) findViewById(R.id.tempAddressTextView);
         disconnectButton = (Button) findViewById(R.id.disconnectButton);
-        connectButton = (Button) findViewById(R.id.connectButton);
-
-        // Create OBDAdapter from the passed BluetoothDevice.
-        this.device = new OBDAdapter((BluetoothDevice) getIntent().getParcelableExtra("device"));
-
-        // print device name.
-        tempNameTextView.setText(device.name);
-        tempAddressTextView.setText(device.address);
+        transmitButton = (Button) findViewById(R.id.transmitButton);
 
         /**
          * Set 'Disconnect' listener.
          */
         disconnectButton.setOnClickListener(this);
-//        connectButton.setOnClickListener(this);
+        transmitButton.setOnClickListener(this);
+
+        /**
+         * Set intent filters.
+         */
+        this.intentFilter = new IntentFilter();
+        this.intentFilter.addAction(DeviceInteractionService.COMMUNICATION_ACTION_RECEIVE);
+        this.intentFilter.addAction(DeviceInteractionService.COMMUNICATION_ACTION_TRANSMIT);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        if ( this.device.connect() )
-            Toast.makeText(this.getApplicationContext(),"Connected!", Toast.LENGTH_SHORT).show();
+        if ( serviceStarted() )
+            this.bindWithService();
+
         else
             finish();
+
+        /*
+         * Register broadcast receiver.
+         */
+        this.registerReceiver( this.actionReceiver, this.intentFilter );
     }
 
 
@@ -78,10 +118,29 @@ public class HUDActivity extends AppCompatActivity
     protected void onPause() {
         super.onPause();
 
-        // Disconnect the OBDAdapter object.
-        this.device.disconnect();
+        if ( this.bound ) {
+            this.unbindService(this);
+            this.bound = false;
+        }
 
         Toast.makeText(this.getApplicationContext(),"Disconnected...", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        /*
+         * Ensure the bluetooth device is connected before starting the HUD.
+         */
+        if ( !deviceConnected() )
+            finish();
+        else {
+            this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+            tempNameTextView.setText(this.sharedPreferences.getString("device_name", ""));
+            tempAddressTextView.setText(this.sharedPreferences.getString("device_address", ""));
+        }
     }
 
     @Override
@@ -101,11 +160,62 @@ public class HUDActivity extends AppCompatActivity
                 break;
 
             // Connection was selected.
-            case R.id.connectButton:
-                if (this.device.connect())
-                    Log.d("HUD","Connected");
+            case R.id.transmitButton:
+                this.service.post("atdp");
+                Log.d("HUD", "Sending: atdp");
+                String message = this.service.get();
+                if ( message == null )
+                    Log.d("HUD","message was NULL.");
                 else
-                    Log.d("HUD","Failed...");
+                    Log.d("HUD","Message: " + message);
+                break;
         }
+    }
+
+    public boolean deviceConnected() {
+        this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        return ( this.sharedPreferences.contains("device_status") && this.sharedPreferences.getBoolean("device_status", false) );
+    }
+
+
+    /**
+     * Method:
+     *      bindWithService( )
+     *
+     * Description:
+     *      ...
+     */
+    public void bindWithService() {
+        Intent intent = new Intent(HUDActivity.this, DeviceInteractionService.class); /* Create new intent. */
+        this.bindService(intent, this, Context.BIND_AUTO_CREATE); /* Bind with the service. */
+        this.bound = true; /* Change bound status flag value. */
+    }
+
+
+    /**
+     * Method:
+     *      serviceStarted( )
+     *
+     * Description:
+     *      ...
+     *
+     * @return
+     */
+    public boolean serviceStarted() {
+        this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        return ( this.sharedPreferences.contains("service_started") && this.sharedPreferences.getBoolean("service_started", false) );
+    }
+
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder service) {
+        this.service = ((DeviceInteractionService.LocalBinder) service).getServiceInstance();
+        this.service.setCommunicationCallbacks(this);
+
+        Log.d("HUDActivity","Service connected.");
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+        Log.d("HUDActivity","Service disconnected.");
     }
 }
