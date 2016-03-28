@@ -11,8 +11,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.zanderman.obd.classes.OBDAdapter;
+import com.github.zanderman.obd.interfaces.BluetoothCallbackInterface;
 import com.github.zanderman.obd4me.R;
 import com.github.zanderman.obd4me.activities.HUDActivity;
+import com.github.zanderman.obd4me.services.DeviceInteractionService;
 
 import java.util.ArrayList;
 
@@ -35,6 +37,8 @@ public class DeviceListAdapter extends ArrayAdapter<BluetoothDevice> implements 
      */
     private final Context context;
     private final ArrayList<BluetoothDevice> devices;
+
+    public static final String ACTION_ITEM_SELECTED = "Item Selected";
 
     /**
      * Constructor:
@@ -127,11 +131,14 @@ public class DeviceListAdapter extends ArrayAdapter<BluetoothDevice> implements 
          *      1. Starts the HUD activity.
          *      2. Transfers selected OBDAdapter object.
          */
-        Intent intent = new Intent(this.context, HUDActivity.class);
-        intent.putExtra("device", this.devices.get(indexInAdapter));
+//        Intent intent = new Intent(this.context, HUDActivity.class);
+        Intent intent = new Intent();
+        intent.setAction(ACTION_ITEM_SELECTED);
+        intent.putExtra(DeviceInteractionService.BLUETOOTH_ITEM_DEVICE, this.devices.get(indexInAdapter));
 
         // Start the activity.
-        this.context.startActivity(intent);
+//        this.context.startActivity(intent);
+        this.context.sendBroadcast(intent);
     }
 
 
