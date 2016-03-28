@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.IBinder;
@@ -64,6 +65,7 @@ public class MainActivity extends AppCompatActivity
      */
     boolean scan_status;
     boolean bound; /* Flag denoting current binding status with background service. */
+    boolean flip_flop;
 
     /**
      * Shared Preferences.
@@ -88,6 +90,68 @@ public class MainActivity extends AppCompatActivity
      */
 //    OBDManager obdManager;
 
+
+    private BroadcastReceiver actionReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            switch (intent.getAction()) {
+
+                /*
+                 * Bluetooth Discovery has Started.
+                 */
+                case DeviceInteractionService.BLUETOOTH_ACTION_DISCOVERY_STARTED:
+                    break;
+
+                /*
+                 * Bluetooth Discovery has Completed.
+                 */
+                case DeviceInteractionService.BLUETOOTH_ACTION_DISCOVERY_FINISHED:
+
+                    /**
+                     * Stop progress bar and reset scanning flag.
+                     */
+                    Log.d("MainActivity","FINISHED");
+//                    progressBar.setVisibility(View.GONE);
+
+                    /*
+                     * Protect against secondary broadcast.
+                     */
+                    if ( flip_flop )
+                        flip_flop = !flip_flop;
+                    else {
+                        if ( scan_status )
+                            scan_status = !scan_status;
+                        progressBar.setVisibility(View.GONE);
+
+                        // Reset the string key.
+                        keyScan = "";
+                    }
+
+                    break;
+
+                /*
+                 * Bluetooth Discovery has Found a Device.
+                 */
+                case DeviceInteractionService.BLUETOOTH_ACTION_DISCOVERY_FOUND:
+
+                    // Obtain access to the Bluetooth Device that was sent through the intent.
+                    listAdd( intent.getParcelableExtra(DeviceInteractionService.BLUETOOTH_ITEM_DEVICE) );
+                    break;
+
+                case DeviceListAdapter.ACTION_ITEM_SELECTED:
+                    service.setDevice(new OBDAdapter((BluetoothDevice) intent.getParcelableExtra(DeviceInteractionService.BLUETOOTH_ITEM_DEVICE)) );
+                    if ( service.connectDevice() ) {
+                        Intent activityIntent = new Intent( getApplicationContext(), HUDActivity.class);
+                        activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        context.startActivity(activityIntent);
+                    }
+                    else
+                        Toast.makeText(context, "Could not connect...", Toast.LENGTH_LONG).show();
+                    break;
+            }
+        }
+    };
+
     /**
      *
      * @param savedInstanceState
@@ -106,6 +170,7 @@ public class MainActivity extends AppCompatActivity
          * Init Flags.
          */
         scan_status = false;
+        flip_flop = false;
 
         /**
          * Initialize UI elements.
@@ -144,11 +209,19 @@ public class MainActivity extends AppCompatActivity
         /**
          * Bind with background service.
          */
-        if (serviceStarted())
+        if ( serviceStarted() )
             this.bindWithService();
-
+        else
+            Log.d("MainActivity","Service not started.");
         // Re-register the Bluetooth actions broadcast receiver.
 //        this.obdManager.registerBroadcastReceiver(this);
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(DeviceInteractionService.BLUETOOTH_ACTION_DISCOVERY_FOUND);
+        intentFilter.addAction(DeviceInteractionService.BLUETOOTH_ACTION_DISCOVERY_STARTED);
+        intentFilter.addAction(DeviceInteractionService.BLUETOOTH_ACTION_DISCOVERY_FINISHED);
+        intentFilter.addAction(DeviceListAdapter.ACTION_ITEM_SELECTED);
+        this.registerReceiver(this.actionReceiver, intentFilter);
     }
 
     /**
@@ -168,6 +241,7 @@ public class MainActivity extends AppCompatActivity
 
             // End scanning.
 //            this.obdManager.stopScan();
+            this.service.stopScan();
 
             // Hide the spinning progress bar.
             this.progressBar.setVisibility(View.GONE);
@@ -179,10 +253,12 @@ public class MainActivity extends AppCompatActivity
         /**
          * Unbind with the background service.
          */
-        if (bound) {
-            this.unbindService(this);
-            bound = false;
-        }
+//        if (bound) {
+//            this.unbindService(this);
+//            bound = false;
+//        }
+
+        this.unregisterReceiver(actionReceiver);
 
         // De-register the Bluetooth actions broadcast receiver.
 //        this.obdManager.unregisterBroadcastReceiver(this);
@@ -320,8 +396,11 @@ public class MainActivity extends AppCompatActivity
                     // Save the desired string.
                     this.keyScan = this.nameEditText.getText().toString();
 
+                    this.flip_flop = true;
+
                     // Begin scanning.
 //                    this.obdManager.startScan();
+                    this.service.startScan();
 
                     // Make the spinning progress bar visible.
                     this.progressBar.setVisibility(View.VISIBLE);
@@ -334,8 +413,11 @@ public class MainActivity extends AppCompatActivity
                     // Reset the string key.
                     this.keyScan = "";
 
+                    flip_flop = false;
+
                     // End scanning.
 //                    this.obdManager.stopScan();
+                    this.service.stopScan();
 
                     // Hide the spinning progress bar.
                     this.progressBar.setVisibility(View.GONE);
@@ -387,11 +469,16 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
+        DeviceInteractionService.LocalBinder binder = (DeviceInteractionService.LocalBinder) service;
+        this.service = binder.getServiceInstance();
+        this.service.setBluetoothCallbacks(this);
 
+        Log.d("MainActivity", "Service connected.");
     }
 
     @Override
     public void onServiceDisconnected(ComponentName name) {
-
+        Log.d("MainActivity","Service disconnected.");
     }
+
 }
