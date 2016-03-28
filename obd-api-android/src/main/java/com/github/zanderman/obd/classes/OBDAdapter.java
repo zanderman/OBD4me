@@ -3,10 +3,19 @@ package com.github.zanderman.obd.classes;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Handler;
 import android.util.Log;
 
+import com.github.zanderman.obd.receivers.OBDReceiver;
+
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Class:
@@ -30,19 +39,39 @@ public class OBDAdapter implements Serializable {
     }
 
     /**
+     * Constants
+     */
+    private final int TIMEOUT = 5; /* Total number of read-iterations before timing-out. */
+
+    /**
      * Private Members
      */
     private BluetoothAdapter adapter;
     private BluetoothDevice device;
     private BluetoothSocket socket;
+    private OutputStream outputStream;
+    private InputStream inputStream;
     private UUID uuid;
     private volatile Status status;
+    private Thread receiveThread;
 
     /**
      * Public Members
      */
     public String name;     // String name listed in a BT scan.
     public String address;  // MAC address.
+
+
+    /**
+     * Shared Variables
+     */
+    volatile boolean worker_continue;
+    byte [] buffer; /* Buffer for read-in message. */
+    final byte delimiter = 10; /* ASCII code for newline character. */
+    int bufferIndex;
+    String receivedMessage;
+    int timeoutCounter;
+
 
     /**
      * Constructor:
@@ -83,6 +112,11 @@ public class OBDAdapter implements Serializable {
 
         // Generate a random UUID for the device to connect with.
         this.uuid = UUID.randomUUID();
+
+        /*
+         * Setup thread-shared variables.
+         */
+        this.worker_continue = true;
 
         // Return configuration success.
         return (true);
@@ -125,6 +159,8 @@ public class OBDAdapter implements Serializable {
 
                             // Attempt to connect to the device.
                             socket.connect();
+                            inputStream = socket.getInputStream();
+                            outputStream = socket.getOutputStream();
 
                             // Change status to connected.
                             status = Status.CONNECTED;
@@ -169,6 +205,15 @@ public class OBDAdapter implements Serializable {
     }
 
 
+    /**
+     * Method:
+     *      disconnect( )
+     *
+     * Description:
+     *      Disconnects from the Bluetooth device.
+     *
+     * @return boolean  Status of disconnection.
+     */
     public boolean disconnect() {
 
         try {
@@ -181,6 +226,14 @@ public class OBDAdapter implements Serializable {
 
                 // Close connect to the Bluetooth socket.
                 this.socket.close();
+                this.outputStream.close();
+                this.inputStream.close();
+
+                /*
+                 * Reset worker continuation boolean.
+                 */
+                worker_continue = false;
+
                 this.status = Status.DISCONNECTED;
                 Log.d("disconnectionThread", "Disconnected");
 
@@ -192,6 +245,161 @@ public class OBDAdapter implements Serializable {
 
             // Disconnect failure.
             return (false);
+        }
+    }
+
+
+    /**
+     * Method:
+     *      send( String )
+     *
+     * Description:
+     *      ...
+     *
+     * @param message   String to be sent to the device.
+     * @return boolean  Status of transmission completion.
+     */
+    public boolean send( String message ) {
+
+        /*
+         * Message is not valid.
+         */
+        if ( message == null )
+            return ( false );
+
+        /*
+         * Message is valid.
+         */
+        try {
+            /*
+             * Ensure message contains a newline delimiter.
+             */
+            if ( !message.contains("\n") )
+                message = message + "\n";
+
+            // Send the data-bytes.
+            this.outputStream.write( message.getBytes() );
+
+            // Transmit successful.
+            return ( true );
+
+            // TODO: Listen for "OK"?
+        } catch ( Exception e ) {
+            return ( false );
+        }
+    }
+
+
+    /**
+     * Method:
+     *      receive( )
+     *
+     * Description:
+     *      Obtains incoming data from the Bluetooth device.
+     *
+     *      Note that the communication interface must be implemented
+     *      to obtain the data outside of the helper background thread.
+     *
+     * @return String   Message obtained from reading the device.
+     */
+    public String receive() {
+
+        buffer = new byte[1024]; /* Buffer for read-in message. */
+        bufferIndex = 0;
+        receivedMessage = null;
+        timeoutCounter = 0;
+
+        /*
+         * Initialize receiver worker thread.
+         */
+        this.receiveThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                /*
+                 * Loop until stopped.
+                 */
+                while ( !worker_continue && (timeoutCounter < TIMEOUT) ) {
+
+                    try {
+
+                        // Obtain the number of bytes currently available.
+                        int bytesAvailable = inputStream.available();
+
+                        /*
+                         * Incoming data is available for read.
+                         */
+                        if ( bytesAvailable > 0 ) {
+                            /*
+                             * Setup byte array and read-in the bytes.
+                             */
+                            byte[] packet = new byte[bytesAvailable];
+                            inputStream.read(packet);
+
+                            /*
+                             * Check if any of the received bytes was a delimiter.
+                             */
+                            for ( int i = 0; i < bytesAvailable; i++ ) {
+
+                                /*
+                                 * Copy over the buffer into a String array.
+                                 */
+                                if ( packet[i] == delimiter ) {
+                                    byte [] encodedBytes = new byte[ bufferIndex ];
+                                    System.arraycopy(buffer, 0, encodedBytes, 0, encodedBytes.length);
+                                    receivedMessage = new String( encodedBytes, "US-ASCII" );
+                                    bufferIndex = 0; /* Reset the buffer index. */
+
+                                    Log.d("ReceiveThread", "Got: " + receivedMessage);
+
+                                    /*
+                                     * Stop worker operation.
+                                     */
+                                    worker_continue = false;
+                                }
+                                else {
+                                    buffer[bufferIndex] = packet[i];
+                                    bufferIndex++;
+                                }
+                            }
+
+                            // Reset the counter on a successful read.
+                            timeoutCounter = 0;
+                        }
+                        else
+                            timeoutCounter++;
+                    } catch ( Exception e ) {
+
+                        /*
+                         * Stop worker operation.
+                         */
+                        worker_continue = false;
+
+                        Log.d("OBDAdapter", "Exception caught in READ operation.");
+                    }
+                }
+
+                /*
+                 * Reset worker continuation boolean for next runthrough.
+                 */
+                worker_continue = true;
+            }
+        });
+
+        /*
+         * Start the worker thread.
+         */
+        this.receiveThread.start();
+
+        /*
+         * Wait until data is received and return result if possible.
+         */
+        try {
+            this.receiveThread.join();
+            return ( receivedMessage );
+        } catch ( Exception e )
+        {
+            return ( null );
         }
     }
 
