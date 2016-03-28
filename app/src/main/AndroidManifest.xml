@@ -22,6 +22,13 @@
         <activity
             android:name=".activities.HUDActivity"
             android:windowSoftInputMode="adjustPan"></activity>
+
+        <service
+            android:name=".services.DeviceInteractionService"
+            android:enabled="true"
+            android:exported="true" >
+
+        </service>
     </application>
 
 </manifest>
