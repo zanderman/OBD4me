@@ -9,72 +9,74 @@
 
     <!-- TODO: Decide on interface layout. -->
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:hint="..."
-        android:id="@+id/tempNameTextView"
-        android:layout_gravity="center_horizontal" />
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:hint="..."
-        android:id="@+id/tempAddressTextView"
-        android:layout_gravity="center_horizontal" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:background="@color/green"
-        android:text="Transmit"
-        android:id="@+id/transmitButton" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:background="@color/red"
-        android:text="Disconnect"
-        android:id="@+id/disconnectButton" />
-
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="16dp"></FrameLayout>
-
     <LinearLayout
-        android:orientation="vertical"
+        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="0dp"
+        android:layout_weight="0.3"
+        android:background="@drawable/card_bg_shadow"
+        android:weightSum="1">
 
         <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
+            android:orientation="vertical"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:gravity="top|center">
+            android:layout_weight="0.65">
 
-            <Button
-                style="?android:attr/buttonStyleSmall"
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="New Button"
-                android:id="@+id/button" />
+                android:hint="Name"
+                android:id="@+id/tempNameTextView"
+                android:layout_gravity="left" />
 
-            <Button
-                style="?android:attr/buttonStyleSmall"
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="New Button"
-                android:id="@+id/button2" />
+                android:hint="Address"
+                android:id="@+id/tempAddressTextView"
+                android:layout_gravity="left" />
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"
+                android:hint="command..."
+                android:ems="10"
+                android:id="@+id/editText" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.35">
 
             <Button
-                style="?android:attr/buttonStyleSmall"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="New Button"
-                android:id="@+id/button3" />
+                android:layout_gravity="center"
+                android:background="@color/green"
+                android:text="Transmit"
+                android:id="@+id/transmitButton" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="@color/red"
+                android:text="Disconnect"
+                android:id="@+id/disconnectButton" />
         </LinearLayout>
     </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:hint="Data log"
+        android:id="@+id/loggerView"
+        android:layout_weight="0.7"
+        android:background="@drawable/card_bg_shadow"
+        android:scrollbars="vertical"/>
+
 </LinearLayout>
