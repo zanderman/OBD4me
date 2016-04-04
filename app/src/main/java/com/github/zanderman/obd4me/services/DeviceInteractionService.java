@@ -326,9 +326,9 @@ public class DeviceInteractionService extends Service
 
     }
 
-    public void post( String packet ) {
-        Log.d("Service", "device: " + this.device.name);
-        this.device.send( packet );
+    public boolean post( String packet ) {
+//        Log.d("Service", "device: " + this.device.name);
+        return this.device.send( packet );
     }
 
     public String get() {
