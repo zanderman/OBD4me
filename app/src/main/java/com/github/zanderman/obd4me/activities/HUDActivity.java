@@ -12,9 +12,11 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,16 +38,18 @@ import com.github.zanderman.obd4me.services.DeviceInteractionService;
  *      Alexander DeRieux
  */
 public class HUDActivity extends AppCompatActivity
-        implements View.OnClickListener, ServiceConnection {
+        implements View.OnClickListener, View.OnLongClickListener, ServiceConnection {
 
     /**
      * Public members.
      */
     TextView tempNameTextView;
     TextView tempAddressTextView;
+    TextView loggerView;
     Button disconnectButton;
     Button transmitButton;
     DeviceInteractionService service;
+    EditText commandEditText;
 
     /**
      * Shared Preferences.
@@ -80,14 +84,22 @@ public class HUDActivity extends AppCompatActivity
          */
         tempNameTextView = (TextView) findViewById(R.id.tempNameTextView);
         tempAddressTextView = (TextView) findViewById(R.id.tempAddressTextView);
+        loggerView = (TextView) findViewById(R.id.loggerView);
         disconnectButton = (Button) findViewById(R.id.disconnectButton);
         transmitButton = (Button) findViewById(R.id.transmitButton);
+        commandEditText = (EditText) findViewById(R.id.editText);
 
         /**
          * Set 'Disconnect' listener.
          */
         disconnectButton.setOnClickListener(this);
         transmitButton.setOnClickListener(this);
+        loggerView.setOnLongClickListener(this);
+
+        /**
+         * Set logger view as scrollable.
+         */
+        loggerView.setMovementMethod(new ScrollingMovementMethod());
 
         /**
          * Set intent filters.
@@ -122,6 +134,8 @@ public class HUDActivity extends AppCompatActivity
             this.unbindService(this);
             this.bound = false;
         }
+
+        this.unregisterReceiver(this.actionReceiver);
 
         Toast.makeText(this.getApplicationContext(),"Disconnected...", Toast.LENGTH_SHORT).show();
     }
@@ -161,16 +175,47 @@ public class HUDActivity extends AppCompatActivity
 
             // Connection was selected.
             case R.id.transmitButton:
-                this.service.post("atdp");
-                Log.d("HUD", "Sending: atdp");
-                String message = this.service.get();
-                if ( message == null )
-                    Log.d("HUD","message was NULL.");
-                else
-                    Log.d("HUD","Message: " + message);
+
+                // Outgoing string.
+                String out = commandEditText.getText().toString();
+
+                // Send the string.
+                boolean result = this.service.post(out);
+
+                /*
+                 * Get incoming string if possible.
+                 */
+                if (result) {
+                    String message = this.service.get();
+                    if ( !message.equals("") )
+                        loggerView.append(message + "\n");
+                }
                 break;
         }
     }
+
+    @Override
+    public boolean onLongClick(View v) {
+        /**
+         * Determine which button was pressed.
+         */
+        switch (v.getId()) {
+
+            /*
+             * Clear data logger on long press.
+             */
+            case R.id.loggerView:
+                loggerView.setText(null);
+                return true;
+
+            /*
+             * Not recognized.
+             */
+            default:
+                return false;
+        }
+    }
+
 
     public boolean deviceConnected() {
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
