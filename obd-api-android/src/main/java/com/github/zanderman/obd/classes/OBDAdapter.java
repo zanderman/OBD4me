@@ -41,7 +41,7 @@ public class OBDAdapter implements Serializable {
     /**
      * Constants
      */
-    private final int TIMEOUT = 5; /* Total number of read-iterations before timing-out. */
+    private final int TIMEOUT = 50; /* Total number of read-iterations before timing-out. */
 
     /**
      * Private Members
@@ -67,7 +67,7 @@ public class OBDAdapter implements Serializable {
      */
     volatile boolean worker_continue;
     byte [] buffer; /* Buffer for read-in message. */
-    final byte delimiter = 10; /* ASCII code for newline character. */
+    final byte delimiter = ((byte) '>');/* ASCII code for newline character. */
     int bufferIndex;
     String receivedMessage;
     int timeoutCounter;
@@ -111,7 +111,7 @@ public class OBDAdapter implements Serializable {
         this.status = Status.DISCONNECTED;
 
         // Generate a random UUID for the device to connect with.
-        this.uuid = UUID.randomUUID();
+        this.uuid = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
 
         /*
          * Setup thread-shared variables.
@@ -155,7 +155,7 @@ public class OBDAdapter implements Serializable {
                             device = adapter.getRemoteDevice(address);
 
                             // Create a communications socket with the device.
-                            socket =(BluetoothSocket) device.getClass().getMethod("createRfcommSocket", new Class[] {int.class}).invoke(device,1);
+                            socket = device.createRfcommSocketToServiceRecord(uuid);
 
                             // Attempt to connect to the device.
                             socket.connect();
@@ -186,7 +186,7 @@ public class OBDAdapter implements Serializable {
                 connectionThread.join(); /* Wait for connection thread to complete. */
 
                 // Connection worked out correctly.
-                if ( status == Status.CONNECTED )
+                if ( this.socket.isConnected() && status == Status.CONNECTED )
                     return (true);
 
                 // Connection failed.
@@ -274,16 +274,21 @@ public class OBDAdapter implements Serializable {
             /*
              * Ensure message contains a newline delimiter.
              */
-            if ( !message.contains("\n") )
-                message = message + "\n";
+            if ( !message.contains("\r\n") )
+                message = message + "\r\n";
 
             // Send the data-bytes.
-            this.outputStream.write( message.getBytes() );
+            this.outputStream = socket.getOutputStream();
+            this.outputStream.write(message.getBytes());
+            this.outputStream.flush();
+
+            /*
+             * Slight delay in sending to account for emptying of buffer.
+             */
+            try{ Thread.sleep(100); }catch(InterruptedException e){ }
 
             // Transmit successful.
             return ( true );
-
-            // TODO: Listen for "OK"?
         } catch ( Exception e ) {
             return ( false );
         }
@@ -306,7 +311,7 @@ public class OBDAdapter implements Serializable {
 
         buffer = new byte[1024]; /* Buffer for read-in message. */
         bufferIndex = 0;
-        receivedMessage = null;
+        receivedMessage = "";
         timeoutCounter = 0;
 
         /*
@@ -319,17 +324,19 @@ public class OBDAdapter implements Serializable {
                 /*
                  * Loop until stopped.
                  */
-                while ( !worker_continue && (timeoutCounter < TIMEOUT) ) {
+                while ( worker_continue && (timeoutCounter < TIMEOUT) ) {
 
                     try {
 
                         // Obtain the number of bytes currently available.
+                        inputStream = socket.getInputStream();
                         int bytesAvailable = inputStream.available();
 
                         /*
                          * Incoming data is available for read.
                          */
                         if ( bytesAvailable > 0 ) {
+
                             /*
                              * Setup byte array and read-in the bytes.
                              */
@@ -341,26 +348,20 @@ public class OBDAdapter implements Serializable {
                              */
                             for ( int i = 0; i < bytesAvailable; i++ ) {
 
+                                // If byte is carriage return, don't add it.
+                                if (packet[i] == ((byte) '\r'))
+                                    continue;
+
+                                // If byte is ending character, don't add it.
+                                // Also, quit the loop.
+                                if (packet[i] == delimiter)
+                                    break;
+
                                 /*
-                                 * Copy over the buffer into a String array.
+                                 * Add byte to message if its not the last character.
                                  */
-                                if ( packet[i] == delimiter ) {
-                                    byte [] encodedBytes = new byte[ bufferIndex ];
-                                    System.arraycopy(buffer, 0, encodedBytes, 0, encodedBytes.length);
-                                    receivedMessage = new String( encodedBytes, "US-ASCII" );
-                                    bufferIndex = 0; /* Reset the buffer index. */
-
-                                    Log.d("ReceiveThread", "Got: " + receivedMessage);
-
-                                    /*
-                                     * Stop worker operation.
-                                     */
-                                    worker_continue = false;
-                                }
-                                else {
-                                    buffer[bufferIndex] = packet[i];
-                                    bufferIndex++;
-                                }
+                                if ((!receivedMessage.equals("")) || (packet[i] != delimiter))
+                                    receivedMessage = receivedMessage + ((char)packet[i]);
                             }
 
                             // Reset the counter on a successful read.
@@ -399,6 +400,7 @@ public class OBDAdapter implements Serializable {
             return ( receivedMessage );
         } catch ( Exception e )
         {
+            worker_continue = false;
             return ( null );
         }
     }
