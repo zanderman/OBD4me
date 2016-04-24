@@ -34,10 +34,10 @@ public class OBDReceiver extends BroadcastReceiver {
 
     /**
      * Default Constructor:
-     *      ...
+     *      OBDReceiver(  )
      *
      * Description:
-     *      ...
+     *      Creates a new OBDReceiver object with initialized members.
      */
     public OBDReceiver() {
         super();
@@ -48,10 +48,10 @@ public class OBDReceiver extends BroadcastReceiver {
 
     /**
      * Constructor:
-     *      ...
+     *      OBDReceiver( final BluetoothCallbackInterface )
      *
      * Description:
-     *      ...
+     *      Creates a new OBDReceiver object with a specific Bluetooth callback interface.
      *
      * @param bluetoothCallbackInterface    Primary callback interface used.
      */
@@ -69,10 +69,11 @@ public class OBDReceiver extends BroadcastReceiver {
 
     /**
      * Constructor:
-     *      ...
+     *      OBDReceiver( final CommunicationCallbackInterface )
      *
      * Description:
-     *      ...
+     *      Creates a new OBDReceiver object with a specific Communication callback interface to
+     *      with which to send communication actions to.
      *
      * @param communicationCallbackInterface    Primary callback interface used.
      */
@@ -88,13 +89,13 @@ public class OBDReceiver extends BroadcastReceiver {
 
     /**
      * Method:
-     *      ...
+     *      onReceive( Context, Intent )
      *
      * Description:
-     *      ...
+     *      Catches all app-wide broadcasts and interprets them based on this class's needs.
      *
-     * @param context
-     * @param intent
+     * @param context   The context in which the broadcast originated.
+     * @param intent    The intent that was packaged with the broadcast.
      */
     @Override
     public void onReceive(Context context, Intent intent) {
