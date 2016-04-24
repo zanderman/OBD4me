@@ -11,6 +11,7 @@
         android:label="@string/app_name"
         android:supportsRtl="true">
 
+        <!-- Register the custom BroadcastReceiver -->
         <receiver
             android:name=".receivers.OBDReceiver"
             android:enabled="true">
