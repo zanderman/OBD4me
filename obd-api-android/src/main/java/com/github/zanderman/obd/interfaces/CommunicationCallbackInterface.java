@@ -5,7 +5,7 @@ package com.github.zanderman.obd.interfaces;
  *      CommunicationCallbackInterface
  *
  * Description:
- *      ...
+ *      Public interface for all Bluetooth communication callback method specified by the OBD API.
  */
 public interface CommunicationCallbackInterface {
 
