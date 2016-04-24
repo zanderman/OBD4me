@@ -254,7 +254,7 @@ public class OBDAdapter implements Serializable {
      *      send( String )
      *
      * Description:
-     *      ...
+     *      Transmits a string to the Bluetooth device currently connected.
      *
      * @param message   String to be sent to the device.
      * @return boolean  Status of transmission completion.
@@ -274,8 +274,8 @@ public class OBDAdapter implements Serializable {
             /*
              * Ensure message contains a newline delimiter.
              */
-            if ( !message.contains("\r\n") )
-                message = message + "\r\n";
+            message.replace("\n", "").replace("\r", ""); /* Remove any newline and carriage return characters. */
+            message = message + "\r\n"; /* Add required line terminator to 'cleaned' message string. */
 
             // Send the data-bytes.
             this.outputStream = socket.getOutputStream();
@@ -283,7 +283,7 @@ public class OBDAdapter implements Serializable {
             this.outputStream.flush();
 
             /*
-             * Slight delay in sending to account for emptying of buffer.
+             * Slight delay (in [ms]) in sending to account for emptying of buffer.
              */
             try{ Thread.sleep(100); }catch(InterruptedException e){ }
 
@@ -309,6 +309,9 @@ public class OBDAdapter implements Serializable {
      */
     public String receive() {
 
+        /*
+         * Initialize all required reception variables.
+         */
         buffer = new byte[1024]; /* Buffer for read-in message. */
         bufferIndex = 0;
         receivedMessage = "";
