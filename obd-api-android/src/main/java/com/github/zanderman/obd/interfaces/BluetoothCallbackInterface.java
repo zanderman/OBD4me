@@ -7,7 +7,7 @@ import android.bluetooth.BluetoothDevice;
  *      BluetoothCallbackInterface
  *
  * Description:
- *      ...
+ *      Public interface for all Bluetooth broadcast callback methods used by the OBD API.
  */
 public interface BluetoothCallbackInterface {
 
