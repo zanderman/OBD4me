@@ -32,7 +32,10 @@ import com.github.zanderman.obd4me.services.DeviceInteractionService;
  *      HUDActivity
  *
  * Description:
- *      ...
+ *      Facilitates interaction between the user and a OBD adapter.
+ *
+ *      Simple transmit/receive actions are done through a textbox and button system.
+ *      Received data is displayed in a scrollable text window that can be cleared via a long press.
  *
  * Author:
  *      Alexander DeRieux
@@ -67,6 +70,9 @@ public class HUDActivity extends AppCompatActivity
     IntentFilter intentFilter;
 
 
+    /*
+     * Initialize the activity's broadcast receiver.
+     */
     BroadcastReceiver actionReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -74,6 +80,16 @@ public class HUDActivity extends AppCompatActivity
         }
     };
 
+
+    /**
+     * Method:
+     *      onCreate( Bundle )
+     *
+     * Description:
+     *      Sets up all activity elements upon creation.
+     *
+     * @param savedInstanceState    Previous saved information for the activity.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -109,6 +125,17 @@ public class HUDActivity extends AppCompatActivity
         this.intentFilter.addAction(DeviceInteractionService.COMMUNICATION_ACTION_TRANSMIT);
     }
 
+
+    /**
+     * Method:
+     *      onResume(  )
+     *
+     * Description:
+     *      Called on the resume section of the activity lifecycle.
+     *
+     *      Checks if background service needs to be re-bound and registers the activity's broadcast
+     *      receiver.
+     */
     @Override
     protected void onResume() {
         super.onResume();
@@ -126,20 +153,42 @@ public class HUDActivity extends AppCompatActivity
     }
 
 
+    /**
+     * Method:
+     *      onPause(  )
+     *
+     * Description:
+     *      Called on the pause section of the activity lifecycle.
+     *
+     *      Unbinds from the background service if possible and unregisters the activity's broadcast
+     *      receiver.
+     */
     @Override
     protected void onPause() {
         super.onPause();
 
+        /*
+         * Unbind from background service if possible.
+         */
         if ( this.bound ) {
             this.unbindService(this);
             this.bound = false;
         }
 
-        this.unregisterReceiver(this.actionReceiver);
-
-        Toast.makeText(this.getApplicationContext(),"Disconnected...", Toast.LENGTH_SHORT).show();
+        this.unregisterReceiver(this.actionReceiver); /* Unregister the activity's broadcast receiver. */
+        Toast.makeText(this.getApplicationContext(),"Disconnected...", Toast.LENGTH_SHORT).show(); /* Inform user that the device is disconnected. */
     }
 
+
+    /**
+     * Method:
+     *      onStart(  )
+     *
+     * Description:
+     *      Called on the start section of the activity lifecycle.
+     *
+     *      Ensures that the OBD device is indeed connected before allowing HUD interaction.
+     */
     @Override
     protected void onStart() {
         super.onStart();
@@ -152,11 +201,26 @@ public class HUDActivity extends AppCompatActivity
         else {
             this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
+            /*
+             * Set device information from SharedPreferences.
+             */
             tempNameTextView.setText(this.sharedPreferences.getString("device_name", ""));
             tempAddressTextView.setText(this.sharedPreferences.getString("device_address", ""));
         }
     }
 
+
+    /**
+     * Method:
+     *      onClick( View )
+     *
+     * Description:
+     *      Called when the user selects something on-screen.
+     *
+     *      HUD operations limited to transmit/receive button presses.
+     *
+     * @param v     The view which was clicked.
+     */
     @Override
     public void onClick(View v) {
 
@@ -165,7 +229,9 @@ public class HUDActivity extends AppCompatActivity
          */
         switch (v.getId()) {
 
-            // Disconnection was selected.
+            /*
+             * Disconnection was selected.
+             */
             case R.id.disconnectButton:
 
                 // Complete this activity.
@@ -173,7 +239,9 @@ public class HUDActivity extends AppCompatActivity
 
                 break;
 
-            // Connection was selected.
+            /*
+             * Connection was selected.
+             */
             case R.id.transmitButton:
 
                 // Outgoing string.
@@ -194,6 +262,19 @@ public class HUDActivity extends AppCompatActivity
         }
     }
 
+
+    /**
+     * Method:
+     *      onLongClick( View )
+     *
+     * Description:
+     *      Called when the user selects something on-screen via a long press.
+     *
+     *      HUD operations limited to clearing the receive data log window.
+     *
+     * @param v         The view which was clicked.
+     * @return boolean  Status of click processing.
+     */
     @Override
     public boolean onLongClick(View v) {
         /**
@@ -217,6 +298,15 @@ public class HUDActivity extends AppCompatActivity
     }
 
 
+    /**
+     * Method:
+     *      deviceConnected(  )
+     *
+     * Description:
+     *      Helper method to determine if a OBD adapter is truly connected.
+     *
+     * @return boolean  Status of device connection.
+     */
     public boolean deviceConnected() {
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         return ( this.sharedPreferences.contains("device_status") && this.sharedPreferences.getBoolean("device_status", false) );
@@ -225,10 +315,10 @@ public class HUDActivity extends AppCompatActivity
 
     /**
      * Method:
-     *      bindWithService( )
+     *      bindWithService(  )
      *
      * Description:
-     *      ...
+     *      Helper method that binds the HUD activity with the custom background service.
      */
     public void bindWithService() {
         Intent intent = new Intent(HUDActivity.this, DeviceInteractionService.class); /* Create new intent. */
@@ -239,18 +329,31 @@ public class HUDActivity extends AppCompatActivity
 
     /**
      * Method:
-     *      serviceStarted( )
+     *      serviceStarted(  )
      *
      * Description:
-     *      ...
+     *      Helper method that checks the status of the custom device background service.
      *
-     * @return
+     * @return boolean  Status of service start completion.
      */
     public boolean serviceStarted() {
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         return ( this.sharedPreferences.contains("service_started") && this.sharedPreferences.getBoolean("service_started", false) );
     }
 
+
+    /**
+     * Method:
+     *      onServiceConnected( ComponentName, IBinder )
+     *
+     * Description:
+     *      Called automatically when a service has been connected with this activity.
+     *
+     *      Sets this activity's service reference.
+     *
+     * @param name      Name of the service application component.
+     * @param service   Binder for the service that was connected.
+     */
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
         this.service = ((DeviceInteractionService.LocalBinder) service).getServiceInstance();
@@ -259,6 +362,17 @@ public class HUDActivity extends AppCompatActivity
         Log.d("HUDActivity","Service connected.");
     }
 
+    /**
+     * Method:
+     *      onServiceDisconnected( ComponentName )
+     *
+     * Description:
+     *      Called automatically when a service has become disconnected from this activity.
+     *
+     *      Does nothing. Method presence required for compilation.
+     *
+     * @param name      Name of the service application component.
+     */
     @Override
     public void onServiceDisconnected(ComponentName name) {
         Log.d("HUDActivity","Service disconnected.");
