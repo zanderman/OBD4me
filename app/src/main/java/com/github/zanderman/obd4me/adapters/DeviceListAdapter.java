@@ -24,7 +24,8 @@ import java.util.ArrayList;
  *      DeviceListAdapter
  *
  * Description:
- *      ...
+ *      Custom adapter for scrollable device ListView used for Bluetooth scanning, device info
+ *      display, and subsequent connections.
  *
  * Author:
  *      Alexander DeRieux
@@ -37,7 +38,6 @@ public class DeviceListAdapter extends ArrayAdapter<BluetoothDevice> implements 
      */
     private final Context context;
     private final ArrayList<BluetoothDevice> devices;
-
     public static final String ACTION_ITEM_SELECTED = "Item Selected";
 
     /**
@@ -66,12 +66,14 @@ public class DeviceListAdapter extends ArrayAdapter<BluetoothDevice> implements 
      *      getView( int, View, ViewGroup )
      *
      * Description:
-     *      ...
+     *      Method called internally on item selection.
      *
-     * @param   position        ...
-     * @param   convertView     ...
-     * @param   parent          ...
-     * @return  View            ...
+     *      Obtains the view that was selected and initializes it.
+     *
+     * @param   position        Location of the item within the list.
+     * @param   convertView     Previous view associated with the item for view recycling.
+     * @param   parent          The item's parent ViewGroup.
+     * @return  View            Initialized view for the slected item.
      */
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -116,9 +118,11 @@ public class DeviceListAdapter extends ArrayAdapter<BluetoothDevice> implements 
      *      onClick( View )
      *
      * Description:
-     *      ...
+     *      Called when the user selects something on-screen.
      *
-     * @param v     ...
+     *      DeviceListAdapter operations limited to obtaining the item stored within the list.
+     *
+     * @param v     The view which was clicked.
      */
     @Override
     public void onClick(View v) {
@@ -127,17 +131,13 @@ public class DeviceListAdapter extends ArrayAdapter<BluetoothDevice> implements 
         int indexInAdapter = Integer.parseInt(((String[]) v.getTag())[0]);
 
         /**
-         * Create new intent to that:
-         *      1. Starts the HUD activity.
-         *      2. Transfers selected OBDAdapter object.
+         * Create new intent that transfers selected OBDAdapter object via a broadcast.
          */
-//        Intent intent = new Intent(this.context, HUDActivity.class);
         Intent intent = new Intent();
         intent.setAction(ACTION_ITEM_SELECTED);
         intent.putExtra(DeviceInteractionService.BLUETOOTH_ITEM_DEVICE, this.devices.get(indexInAdapter));
 
         // Start the activity.
-//        this.context.startActivity(intent);
         this.context.sendBroadcast(intent);
     }
 
@@ -147,9 +147,9 @@ public class DeviceListAdapter extends ArrayAdapter<BluetoothDevice> implements 
      *      add( BluetoothDevice )
      *
      * Description:
-     *      ...
+     *      Inserts a Bluetooth device into the list.
      *
-     * @param object
+     * @param object    Bluetooth device to be added.
      */
     @Override
     public void add(BluetoothDevice object) {
@@ -186,6 +186,13 @@ public class DeviceListAdapter extends ArrayAdapter<BluetoothDevice> implements 
     }
 
 
+    /**
+     * Method:
+     *      clear(  )
+     *
+     * Description:
+     *      Completely removes all elements from the device list.
+     */
     @Override
     public void clear() {
         super.clear();
