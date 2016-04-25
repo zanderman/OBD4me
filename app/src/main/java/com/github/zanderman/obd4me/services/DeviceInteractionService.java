@@ -18,7 +18,21 @@ import com.github.zanderman.obd.interfaces.CommunicationCallbackInterface;
 import com.github.zanderman.obd4me.activities.MainActivity;
 
 /**
- * Created by zanderman on 3/21/16.
+ * Class:
+ *      DeviceInteractionService
+ *
+ * Description:
+ *      Custom background service which facilitates all Bluetooth device interactions.
+ *      All connection/disconnection requests are managed through this service and carried out if
+ *      possible.
+ *
+ *      This background service was designed to provide a level of separation between the application
+ *      and the OBD API. The rest of the application does not need to know there's an API present,
+ *      this service manages all API calls and provides an app-wide interface that delegates which
+ *      API calls are being used for this specific application.
+ *
+ * Author:
+ *      Alexander DeRieux
  */
 public class DeviceInteractionService extends Service
         implements BluetoothCallbackInterface, CommunicationCallbackInterface {
@@ -49,10 +63,10 @@ public class DeviceInteractionService extends Service
 
     /**
      * Constructor:
-     *      DeviceInteractionService( )
+     *      DeviceInteractionService(  )
      *
      * Description:
-     *      ...
+     *      Creates a new service object with initialized members.
      */
     public DeviceInteractionService() {
         super();
@@ -66,6 +80,14 @@ public class DeviceInteractionService extends Service
         this.device = null;
     }
 
+
+    /**
+     * Method:
+     *      onCreate(  )
+     *
+     * Description:
+     *      Sets up all service elements upon creation.
+     */
     @Override
     public void onCreate() {
         super.onCreate();
@@ -103,10 +125,12 @@ public class DeviceInteractionService extends Service
      *      onBind( Intent )
      *
      * Description:
-     *      ...
+     *      Called automatically upon an activity attempting to bind with this service.
      *
-     * @param intent
-     * @return
+     *      Sets this service's binding status within SharedPreferences.
+     *
+     * @param intent    Intent that was packaged with the bind request.
+     * @return IBinder  Reference to this service's binder object.
      */
     @Override
     public IBinder onBind(Intent intent) {
@@ -123,6 +147,18 @@ public class DeviceInteractionService extends Service
         return this.binder;
     }
 
+    /**
+     * Method:
+     *      onUnbind( Intent )
+     *
+     * Description:
+     *      Called automatically upon an activity attempting to unbind from this service.
+     *
+     *      Sets this service's binding status within SharedPreferences.
+     *
+     * @param intent    Intent that was packaged with the unbind request.
+     * @return boolean  Status of service unbind.
+     */
     @Override
     public boolean onUnbind(Intent intent) {
 
@@ -138,6 +174,19 @@ public class DeviceInteractionService extends Service
     }
 
     // NOTE: When service is first started (before binding), it runs this command.
+    /**
+     * Method:
+     *      onStartCommand( Intent, int, int )
+     *
+     * Description:
+     *      Called automatically when service is first started (before binding).
+     *
+     *      Sets this service's started status within SharedPreferences.
+     *      Also registers the OBDManager broadcast receiver with this service.
+     *
+     * @param intent    Intent that was packaged with start.
+     * @return int      Desired persistence state.
+     */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
@@ -162,6 +211,15 @@ public class DeviceInteractionService extends Service
     }
 
 
+    /**
+     * Method:
+     *      onDestroy(  )
+     *
+     * Description:
+     *      Called on the destroy section of the activity lifecycle.
+     *
+     *      Unregisters the broadcast receivers registered with this service.
+     */
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -171,7 +229,7 @@ public class DeviceInteractionService extends Service
          */
         this.manager.unregisterBroadcastReceiver(this);
 
-        Log.d("Service","Destroyed");
+        Log.d("Service", "Destroyed");
     }
 
 
@@ -188,10 +246,25 @@ public class DeviceInteractionService extends Service
         this.device = device;
     }
 
+
+    /**
+     * Method:
+     *      connectDevice(  )
+     *
+     * Description:
+     *      Initializes a connection with the pre-determined OBDAdapter object.
+     *
+     *      Stores connection and device information within SharedPreferences.
+     *
+     * @return boolean  Connection result.
+     */
     public boolean connectDevice( ) {
 
-        boolean flag = this.device.connect();
+        boolean flag = this.device.connect(); /* Connect to OBDAdapter. */
 
+        /*
+         * Store information within SharedPreferences.
+         */
         SharedPreferences server_status = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         SharedPreferences.Editor editor = server_status.edit();
         editor.putBoolean("device_status", flag);
@@ -199,13 +272,28 @@ public class DeviceInteractionService extends Service
         editor.putString("device_address", this.device.address);
         editor.commit();
 
-        return ( flag );
+        return ( flag ); /* Return device connection status. */
     }
 
+
+    /**
+     * Method:
+     *      disconnectDevice(  )
+     *
+     * Description:
+     *      Eliminates the connection with the pre-determined OBDAdapter object.
+     *
+     *      Stores disconnection and device information within SharedPreferences.
+     *
+     * @return boolean  Disconnection result.
+     */
     public boolean disconnectDevice( ) {
 
-        boolean flag = this.device.disconnect();
+        boolean flag = this.device.disconnect(); /* Disconnect from OBDAdapter. */
 
+        /*
+         * Store information within SharedPreferences.
+         */
         SharedPreferences server_status = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         SharedPreferences.Editor editor = server_status.edit();
         editor.putBoolean("device_status", flag);
@@ -213,13 +301,29 @@ public class DeviceInteractionService extends Service
         editor.putString("device_address", null);
         editor.commit();
 
-        return ( flag );
+        return ( flag ); /* Return device connection status. */
     }
 
+
+    /**
+     * Method:
+     *      startScan(  )
+     *
+     * Description:
+     *      Facilitates Bluetooth scanning via a call to the OBD API scanning method.
+     */
     public void startScan() {
         this.manager.startScan();
     }
 
+
+    /**
+     * Method:
+     *      stopScan(  )
+     *
+     * Description:
+     *      Facilitates Bluetooth scan halt via a call to the OBD API scan stopping method.
+     */
     public void stopScan() {
         this.manager.stopScan();
     }
@@ -229,9 +333,10 @@ public class DeviceInteractionService extends Service
      *      setBluetoothCallbacks( Activity )
      *
      * Description:
-     *      ...
+     *      Specifies the activity which implements the custom Bluetooth callback interface and
+     *      marks it for future calls regarding Bluetooth actions.
      *
-     * @param activity
+     * @param activity  Activity that implements set Bluetooth callbacks.
      */
     public void setBluetoothCallbacks( Activity activity ){
 
@@ -249,9 +354,10 @@ public class DeviceInteractionService extends Service
      *      setCommunicationCallbacks( Activity )
      *
      * Description:
-     *      ...
+     *      Specifies the activity which implements the custom Communication callback interface and
+     *      marks it for future calls regarding Communication actions.
      *
-     * @param activity
+     * @param activity  Activity that implements set Communication callbacks.
      */
     public void setCommunicationCallbacks( Activity activity ) {
         /**
@@ -264,13 +370,29 @@ public class DeviceInteractionService extends Service
     }
 
 
-
-
+    /**
+     * Method:
+     *      bluetoothError( String )
+     *
+     * Description:
+     *      Allows processing of any Bluetooth errors.
+     *
+     *      Does nothing. Required for compilation.
+     *
+     * @param message   Message packaged with the Bluetooth error.
+     */
     @Override
     public void bluetoothError(String message) {
 
     }
 
+    /**
+     * Method:
+     *      discoveryStarted(  )
+     *
+     * Description:
+     *      Callback for start of Bluetooth device discovery.
+     */
     @Override
     public void discoveryStarted() {
 
@@ -286,6 +408,13 @@ public class DeviceInteractionService extends Service
         sendBroadcast(intent);
     }
 
+    /**
+     * Method:
+     *      discoveryFinished(  )
+     *
+     * Description:
+     *      Callback for ending of Bluetooth device discovery.
+     */
     @Override
     public void discoveryFinished() {
         /**
@@ -300,6 +429,15 @@ public class DeviceInteractionService extends Service
         sendBroadcast(intent);
     }
 
+    /**
+     * Method:
+     *      discoveryFound( BluetoothDevice )
+     *
+     * Description:
+     *      Callback for discovery of Bluetooth devices.
+     *
+     * @param device    Bluetooth device that was found during scan.
+     */
     @Override
     public void discoveryFound(BluetoothDevice device) {
 
@@ -316,22 +454,38 @@ public class DeviceInteractionService extends Service
         sendBroadcast(intent);
     }
 
+
+    /**
+     * Method:
+     *      receive(  )
+     *
+     * Description:
+     *      Facilitates communication between the app and the OBD API.
+     *
+     *      Calls the OBD API 'receive' method and returns the raw result.
+     *
+     * @return String   Raw result of the 'receive' API call.
+     */
     @Override
-    public void receive(String packet) {
-
-    }
-
-    @Override
-    public void transmit(String packet) {
-
-    }
-
-    public boolean post( String packet ) {
-//        Log.d("Service", "device: " + this.device.name);
-        return this.device.send( packet );
-    }
-
-    public String get() {
+    public String receive(  ) {
         return this.device.receive();
+    }
+
+
+    /**
+     * Method:
+     *      transmit( String )
+     *
+     * Description:
+     *      Facilitates communication between the app and the OBD API.
+     *
+     *      Calls the OBD API 'transmit' method and returns status of its completion.
+     *
+     * @param packet    Message to be sent to the OBD adapter.
+     * @return boolean  Status of transmit completion.
+     */
+    @Override
+    public boolean transmit(String packet) {
+        return this.device.send( packet );
     }
 }
