@@ -116,7 +116,7 @@ public class OBDReceiver extends BroadcastReceiver {
                     this.bluetoothCallbackInterface.discoveryFound((BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE));
             case OBDReceiver.COMMUNICATION_RECEIVE:
                 if ( this.communicationCallbackInterface != null )
-                    this.communicationCallbackInterface.receive( intent.getStringExtra(context.getString(R.string.IncomingData)) );
+                    this.communicationCallbackInterface.receive( );
             case OBDReceiver.COMMUNICATION_TRANSMIT:
                 if ( this.communicationCallbackInterface != null )
                     this.communicationCallbackInterface.transmit( context.getString(R.string.OutgoingData) );
