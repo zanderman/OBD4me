@@ -248,13 +248,13 @@ public class HUDActivity extends AppCompatActivity
                 String out = commandEditText.getText().toString();
 
                 // Send the string.
-                boolean result = this.service.post(out);
+                boolean result = this.service.transmit(out);
 
                 /*
                  * Get incoming string if possible.
                  */
                 if (result) {
-                    String message = this.service.get();
+                    String message = this.service.receive();
                     if ( !message.equals("") )
                         loggerView.append(message + "\n");
                 }
