@@ -1,7 +1,14 @@
 package com.github.zanderman.obd4me.interfaces;
 
 /**
- * Created by zanderman on 3/21/16.
+ * Class:
+ *      ListableInterface
+ *
+ * Description:
+ *      Custom interface for interacting with list objects.
+ *
+ * Author:
+ *      Alexander DeRieux
  */
 public interface ListableInterface {
 
