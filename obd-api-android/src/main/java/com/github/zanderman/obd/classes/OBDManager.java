@@ -72,7 +72,8 @@ public class OBDManager {
             // Turn on the BT adapter if it is NOT already enabled.
             if ( !this.adapter.isEnabled() ) {
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                ((Activity) context).startActivityForResult(enableBtIntent, this.REQUEST_ENABLE_BT);
+                enableBtIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(enableBtIntent);
             }
 
             // Create the receiver object.
