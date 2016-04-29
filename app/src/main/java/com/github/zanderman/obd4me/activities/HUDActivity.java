@@ -146,6 +146,8 @@ public class HUDActivity extends AppCompatActivity
         else
             finish();
 
+//        this.service.connectDevice();
+
         /*
          * Register broadcast receiver.
          */
@@ -233,6 +235,9 @@ public class HUDActivity extends AppCompatActivity
              * Disconnection was selected.
              */
             case R.id.disconnectButton:
+
+                // Tell service to disconnect from the OBD adapter.
+                this.service.disconnectDevice();
 
                 // Complete this activity.
                 finish();
